@@ -1,0 +1,6 @@
+nfs:
+  server: 192.168.68.100
+  path: /mnt/pve/BigData/k3s-shares
+storageClass:
+  name: nfs-hdd
+  reclaimPolicy: Retain

@@ -1,14 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: applications-layer
+  name: argocd-apps
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/mrashed98/homelab.git
-    targetRevision: HEAD
-    path: argocd/apps 
+    targetRevision: master 
+    path: argocd
+    directory:
+      recurse: true # This must be true to find apps/postgres/app.yaml
+      exclude: 'apps.yaml'
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: argocd

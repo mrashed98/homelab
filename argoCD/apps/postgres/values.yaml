@@ -1,0 +1,5 @@
+global:
+  storageClass: "nfs-hdd"
+primary:
+  persistence:
+    size: 10Gi
