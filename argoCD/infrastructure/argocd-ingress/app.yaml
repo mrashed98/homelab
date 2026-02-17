@@ -4,11 +4,11 @@ metadata:
   name: argocd-ingress
   namespace: argocd
   annotations:
-    # This tells Traefik to listen on the plain HTTP entrypoint
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
+  ingressClassName: traefik  # <--- Add this line
   rules:
-    - host: argo.local  # Our local-only domain
+    - host: argo.local
       http:
         paths:
           - path: /
