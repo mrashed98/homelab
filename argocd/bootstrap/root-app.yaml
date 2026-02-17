@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/mrashed98/homelab.git
     targetRevision: HEAD
-    path: argocd/bootstrap/management # We will put the 'App definitions' here to keep it tidy
+    path: argocd/bootstrap/management 
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

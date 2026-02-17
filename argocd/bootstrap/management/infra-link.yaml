@@ -6,6 +6,8 @@ metadata:
 spec:
   project: default
   source:
+    directory:
+      recurse: true
     repoURL: https://github.com/mrashed98/homelab.git
     targetRevision: HEAD
     path: argocd/infrastructure 
