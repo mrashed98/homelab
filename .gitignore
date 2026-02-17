@@ -1,0 +1,23 @@
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+# Note: Keep variables.tf, but ignore terraform.tfvars because it contains your secrets!
+
+# --- Ansible ---
+*.retry
+inventory.ini
+# If you put passwords in group_vars, ignore them or use ansible-vault
+
+# --- Generic / OS ---
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.tmp
+*.pub
+
+# --- Kubernetes / ArgoCD ---
+# Don't ignore YAMLs, but ignore any local kubeconfig files
+kubeconfig*

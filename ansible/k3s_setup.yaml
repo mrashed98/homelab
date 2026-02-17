@@ -1,0 +1,75 @@
+---
+- name: Setup for k3s
+  hosts: k3s_cluster
+  become: true
+
+  tasks:
+    - name: Update cache and install curl
+      ansible.builtin.apt:
+        name: curl
+        state: present
+        update_cache: true
+
+    - name: Install nfs-common for storage support
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+
+- name: install k3s on master
+  hosts: master
+  become: true
+
+  tasks:
+    - name: Install k3s
+      ansible.builtin.shell:
+        creates: /usr/local/bin/k3s
+        cmd: curl -sfL https://get.k3s.io | sh -
+
+    - name: Wait for the token to be ready
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        state: present
+        timeout: 6000
+
+    - name: Get the K3s join token from the master
+      ansible.builtin.command: cat /var/lib/rancher/k3s/server/node-token
+      register: master_token_output
+
+    - name: Show me what was captured
+      ansible.builtin.debug:
+        msg: "The token is {{ master_token_output.stdout }}"
+
+    - name: Install Helm via script
+      ansible.builtin.shell:
+        cmd: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        creates: /usr/local/bin/helm
+    
+- name: Install k3s on workers
+  hosts: workers
+  become: true
+
+  tasks:
+    - name: Join Workers to the cluster
+      ansible.builtin.shell: curl -sfL https://get.k3s.io | sh -
+      environment:
+        K3S_URL: "https://192.168.68.150:6443"
+        K3S_TOKEN: "{{ hostvars['192.168.68.150']['master_token_output']['stdout'] }}"
+
+    - name: Create a partition and format the 100GB disk
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/vdb  # In KVM, virtio1 usually shows as /dev/vdb
+        force: no
+
+    - name: Create data directory
+      ansible.builtin.file:
+        path: /mnt/k3s-data
+        state: directory
+        mode: '0755'
+
+    - name: Mount the 100GB disk
+      ansible.posix.mount:
+        path: /mnt/k3s-data
+        src: /dev/vdb
+        fstype: ext4
+        state: mounted
