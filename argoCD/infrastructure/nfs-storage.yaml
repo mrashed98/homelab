@@ -10,11 +10,17 @@ spec:
       chart: nfs-subdir-external-provisioner
       targetRevision: 4.0.18
       helm:
-        valueFiles:
-          - $values/argocd/infrastructure/nfs-storage/values.yaml
-    - repoURL: https://github.com/mrashed98/homelab.git
-      targetRevision: master
-      ref: values
+        values: |
+          nfs:
+            server: 192.168.68.100
+            path: /mnt/pve/BigData/k3s-shares
+          storageClass:
+            name: nfs-hdd
+            reclaimPolicy: Retain
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
