@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: redis
-    targetRevision: "25.3.0"   # Redis 7.4 — pin chart version
+    targetRevision: "*"   # Always use latest stable — avoids stale image tags
     helm:
       values: |
         fullnameOverride: redis
