@@ -1,0 +1,32 @@
+image:
+  repository: sissbruecker/linkding
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 9090
+
+ingress:
+  host: links.local
+
+db:
+  host: postgres.databases.svc.cluster.local
+  port: "5432"
+  name: linkding
+  user: linkding
+
+superuser:
+  name: admin
+
+existingSecret: linkding-db-secret
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m

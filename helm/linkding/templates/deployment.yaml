@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: linkding
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 9090
+          env:
+            - name: LD_DB_ENGINE
+              value: django.db.backends.postgresql
+            - name: LD_DB_HOST
+              value: "{{ .Values.db.host }}"
+            - name: LD_DB_PORT
+              value: "{{ .Values.db.port }}"
+            - name: LD_DB_DATABASE
+              value: "{{ .Values.db.name }}"
+            - name: LD_DB_USER
+              value: "{{ .Values.db.user }}"
+            - name: LD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: DB_PASSWORD
+            - name: LD_SUPERUSER_NAME
+              value: "{{ .Values.superuser.name }}"
+            - name: LD_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: LD_SUPERUSER_PASSWORD
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
