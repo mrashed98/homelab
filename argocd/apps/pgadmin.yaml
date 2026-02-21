@@ -12,7 +12,7 @@ spec:
     helm:
       values: |
         env:
-          email: admin@homelab.local
+          email: admin@homelab.com
 
         existingSecret: pgadmin-secret
         secretKeys:
