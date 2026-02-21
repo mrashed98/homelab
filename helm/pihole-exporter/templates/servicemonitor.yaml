@@ -6,6 +6,9 @@ metadata:
   labels:
     release: prometheus
 spec:
+  namespaceSelector:
+    matchNames:
+      - monitoring
   selector:
     matchLabels:
       app: pihole-exporter

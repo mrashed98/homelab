@@ -27,7 +27,10 @@ spec:
             - name: PIHOLE_PORT
               value: "80"
             - name: PIHOLE_PASSWORD
-              value: "01cd01e1"
+              valueFrom:
+                secretKeyRef:
+                  name: pihole-exporter-secret
+                  key: password
             - name: PORT
               value: "9617"
           resources:
