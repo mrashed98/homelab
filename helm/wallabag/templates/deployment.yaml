@@ -47,11 +47,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.existingSecret }}
                   key: APP_SECRET
-            - name: SYMFONY__ENV__REDIS_SCHEME
+            - name: REDIS_SCHEME
               value: tcp
-            - name: SYMFONY__ENV__REDIS_HOST
+            - name: REDIS_HOST
               value: "{{ .Values.redis.host }}"
-            - name: SYMFONY__ENV__REDIS_PORT
+            - name: REDIS_PORT
               value: "{{ .Values.redis.port }}"
             - name: SYMFONY__ENV__DOMAIN_NAME
               value: "https://{{ .Values.ingress.host }}"
