@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: transmission-downloads
+  name: {{ .Release.Name }}-downloads
 spec:
   capacity:
     storage: {{ .Values.persistence.downloads.size }}
@@ -12,11 +12,14 @@ spec:
     path: {{ .Values.persistence.downloads.nfs.path }}
   storageClassName: manual
   persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: {{ .Release.Name }}-downloads
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: transmission-downloads
+  name: {{ .Release.Name }}-downloads
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
@@ -25,13 +28,13 @@ spec:
   resources:
     requests:
       storage: {{ .Values.persistence.downloads.size }}
-  volumeName: transmission-downloads
+  volumeName: {{ .Release.Name }}-downloads
   storageClassName: manual
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: transmission-config
+  name: {{ .Release.Name }}-config
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:

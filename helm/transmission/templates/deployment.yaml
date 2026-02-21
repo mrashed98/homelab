@@ -45,7 +45,7 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: transmission-config
+            claimName: {{ .Release.Name }}-config
         - name: downloads
           persistentVolumeClaim:
-            claimName: transmission-downloads
+            claimName: {{ .Release.Name }}-downloads
