@@ -1,0 +1,29 @@
+image:
+  repository: athou/commafeed
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8082
+
+ingress:
+  host: feed.local
+
+db:
+  host: postgres.databases.svc.cluster.local
+  port: "5432"
+  name: commafeed
+  user: commafeed
+
+existingSecret: commafeed-db-secret
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m
