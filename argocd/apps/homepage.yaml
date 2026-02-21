@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: oci://ghcr.io/m0nsterrr/helm-charts
+    repoURL: https://m0nsterrr.github.io/helm-charts
     targetRevision: 4.7.0
     chart: homepage
     helm:

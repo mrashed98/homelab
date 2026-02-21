@@ -21,13 +21,15 @@ spec:
         persistence:
           config:
             enabled: true
+            type: pvc
             storageClass: nfs-hdd
             size: 10Gi
           media:
             enabled: true
             type: nfs
-            server: 192.168.68.100
-            path: /mnt/pve/BigData/k3s-share/media
+            nfs:
+              server: 192.168.68.100
+              path: /mnt/pve/BigData/k3s-share/media
         service:
           type: ClusterIP
         resources:
