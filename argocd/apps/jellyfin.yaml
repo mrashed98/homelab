@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://jellyfin.github.io/jellyfin-helm
-    targetRevision: 2.7.0
+    repoURL: https://wrenix.eu/charts
+    targetRevision: 0.3.24
     chart: jellyfin
     helm:
       values: |
@@ -21,16 +21,16 @@ spec:
         persistence:
           config:
             enabled: true
-            type: pvc
-            storageClass: nfs-hdd
-            size: 10Gi
+            pvc:
+              enabled: true
+              storageClass: nfs-hdd
+              size: 10Gi
           media:
             enabled: true
-            type: nfs
-            mountPath: /media
             nfs:
               server: 192.168.68.100
               path: /mnt/pve/BigData/k3s-shares/media
+            mountPath: /media
         service:
           type: ClusterIP
         resources:
