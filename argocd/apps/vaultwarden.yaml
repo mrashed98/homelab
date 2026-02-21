@@ -25,10 +25,6 @@ spec:
             nfs:
               server: 192.168.68.100
               path: /mnt/pve/BigData/k3s-share/vaultwarden
-            size: 1Gi
-            storageClass: nfs-hdd
-        service:
-          type: ClusterIP
         env:
           DOMAIN: https://vault.local
           SIGNUPS_ALLOWED: "true"
