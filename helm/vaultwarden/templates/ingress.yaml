@@ -6,9 +6,15 @@ metadata:
   labels:
     app: {{ .Release.Name }}
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - vault.local
+      secretName: vaultwarden-tls
   rules:
     - host: vault.local
       http:

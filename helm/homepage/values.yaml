@@ -26,10 +26,15 @@ config:
             icon: jellyfin.png
         - xtreme-downloader:
             href: http://xtreme-downloader.xtreme-downloader.svc.cluster.local:8080
+            icon: download.png
     - Security:
         - vaultwarden:
             href: http://vaultwarden.vaultwarden.svc.cluster.local:80
             icon: vaultwarden.png
+    - Cluster:
+        - argocd:
+            href: http://argocd-server.argocd.svc.cluster.local:80
+            icon: argocd.png
 
 resources:
   requests:

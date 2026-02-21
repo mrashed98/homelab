@@ -3,8 +3,16 @@ kind: Ingress
 metadata:
   name: argocd-ingress
   namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - argo.local
+      secretName: argocd-tls
   rules:
     - host: argo.local
       http:
@@ -13,6 +21,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: argocd-server # <--- Verify this name!
+                name: argocd-server
                 port:
                   number: 80

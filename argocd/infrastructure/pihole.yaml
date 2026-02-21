@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pihole
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://mojo2600.github.io/pihole-kubernetes/
+    chart: pihole
+    targetRevision: 2.26.0
+    helm:
+      values: |
+        replicaCount: 1
+        image:
+          repository: pihole/pihole
+          tag: latest
+          pullPolicy: IfNotPresent
+        serviceDns:
+          type: LoadBalancer
+          port: 53
+        serviceWeb:
+          type: ClusterIP
+          http:
+            enabled: true
+            port: 80
+          https:
+            enabled: false
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: selfsigned-issuer
+          hosts:
+            - host: pihole.local
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: pihole-tls
+              hosts:
+                - pihole.local
+        admin:
+          password: 01cd01e1
+        DNSservers:
+          - 8.8.8.8
+          - 8.8.4.4
+        extraEnvVars:
+          TZ: UTC
+        dnsmasq:
+          customDnsEntries:
+            - address=/local/192.168.68.150
+        persistentVolumeClaim:
+          enabled: true
+          storageClassName: nfs-hdd
+          accessModes:
+            - ReadWriteOnce
+          size: 1Gi
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pihole
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
