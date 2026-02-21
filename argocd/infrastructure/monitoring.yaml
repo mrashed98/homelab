@@ -32,7 +32,8 @@ spec:
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: local-path
+                  storageClassName: local-path  # local-path: Prometheus TSDB has sequential write patterns
+                                     # similar to PostgreSQL WAL; NFS file locking causes data corruption
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -58,7 +59,8 @@ spec:
             passwordKey: admin-password
           persistence:
             enabled: true
-            storageClassName: local-path
+            storageClassName: local-path  # local-path: chosen for I/O performance; Grafana state
+                               # is non-critical and can be rebuilt from datasources
             size: 10Gi
 
         alertmanager:
@@ -66,7 +68,7 @@ spec:
             storage:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: local-path
+                  storageClassName: local-path  # local-path: alertmanager WAL files require local storage
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
