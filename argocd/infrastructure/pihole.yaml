@@ -62,10 +62,11 @@ spec:
           limits:
             memory: 512Mi
             cpu: 500m
-        readinessProbe:
-          enabled: false
-        livenessProbe:
-          enabled: false
+        probes:
+          liveness:
+            enabled: false
+          readiness:
+            enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: pihole
