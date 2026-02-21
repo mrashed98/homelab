@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/mrashed98/xtreme-downloader.git
-    targetRevision: main
+    targetRevision: master
     path: helm/xtreme-downloader
     helm:
       values: |
