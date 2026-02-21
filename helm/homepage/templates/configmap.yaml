@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+data:
+  kubernetes.yaml: |
+    mode: {{ .Values.config.kubernetes.mode }}
+  settings.yaml: |
+    title: {{ .Values.config.title }}
+  services.yaml: |
+    {{- .Values.config.services | toYaml | nindent 4 }}

@@ -1,0 +1,39 @@
+image:
+  repository: ghcr.io/gethomepage/homepage
+  tag: latest
+  pullPolicy: Always
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  host: home.local
+  className: traefik
+
+config:
+  allowedHosts: home.local,localhost
+  title: Homelab
+  kubernetes:
+    mode: cluster
+  services:
+    - Media:
+        - jellyfin:
+            href: http://jellyfin.jellyfin.svc.cluster.local:8096
+            icon: jellyfin.png
+        - xtreme-downloader:
+            href: http://xtreme-downloader.xtreme-downloader.svc.cluster.local:8080
+    - Security:
+        - vaultwarden:
+            href: http://vaultwarden.vaultwarden.svc.cluster.local:80
+            icon: vaultwarden.png
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi

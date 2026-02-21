@@ -6,44 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://helm-charts.adminafk.fr
-    targetRevision: 4.6.0
-    chart: homepage
-    helm:
-      values: |
-        env:
-          HOMEPAGE_ALLOWED_HOSTS: "home.local,localhost"
-        ingress:
-          enabled: true
-          hosts:
-            - host: home.local
-              paths:
-                - path: /
-                  pathType: Prefix
-        resources:
-          requests:
-            memory: 128Mi
-            cpu: 100m
-          limits:
-            memory: 512Mi
-        configMap:
-          enabled: true
-          data:
-            kubernetes.yaml: |
-              mode: cluster
-            settings.yaml: |
-              title: Homelab
-            services.yaml: |
-              - Media:
-                  - jellyfin:
-                      href: http://jellyfin.jellyfin.svc.cluster.local:8096
-                      icon: jellyfin.png
-                  - xtreme-downloader:
-                      href: http://xtreme-downloader.xtreme-downloader.svc.cluster.local:8080
-              - Utilities:
-                  - vaultwarden:
-                      href: http://vaultwarden.vaultwarden.svc.cluster.local:80
-                      icon: vaultwarden.png
+    repoURL: https://github.com/mrashed98/homelab.git
+    targetRevision: master
+    path: helm/homepage
   destination:
     server: https://kubernetes.default.svc
     namespace: homepage
