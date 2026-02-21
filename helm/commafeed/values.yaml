@@ -1,5 +1,5 @@
 image:
-  repository: athou/commafeed
+  repository: ghcr.io/athou/commafeed
   tag: latest
   pullPolicy: IfNotPresent
 
