@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pgadmin
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://helm.runix.net
+    chart: pgadmin4
+    targetRevision: "1.59.0"
+    helm:
+      values: |
+        env:
+          email: admin@homelab.local
+
+        existingSecret: pgadmin-secret
+        secretKeys:
+          pgadminPasswordKey: password
+
+        ingress:
+          enabled: true
+          ingressClassName: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: homelab-ca-issuer
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+            traefik.ingress.kubernetes.io/router.tls: "true"
+          hosts:
+            - host: pgadmin.local
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: pgadmin-tls
+              hosts:
+                - pgadmin.local
+
+        persistentVolume:
+          enabled: true
+          storageClass: nfs-hdd
+          size: 1Gi
+
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pgadmin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
