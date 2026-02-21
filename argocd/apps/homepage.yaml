@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: oci://ghcr.io/m0nsterrr/helm-charts
+    targetRevision: 4.7.0
+    chart: homepage
+    helm:
+      values: |
+        env:
+          HOMEPAGE_ALLOWED_HOSTS: "home.local,localhost"
+        ingress:
+          enabled: true
+          hosts:
+            - host: home.local
+              paths:
+                - path: /
+                  pathType: Prefix
+        service:
+          type: ClusterIP
+          port: 3000
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+        configMap:
+          enabled: true
+          data:
+            kubernetes.yaml: |
+              mode: cluster
+            settings.yaml: |
+              title: Homelab
+            services.yaml: |
+              - Media:
+                  - jellyfin:
+                      href: http://jellyfin.jellyfin.svc.cluster.local:8096
+                      icon: jellyfin.png
+                  - xtreme-downloader:
+                      href: http://xtreme-downloader.xtreme-downloader.svc.cluster.local:8080
+              - Utilities:
+                  - vaultwarden:
+                      href: http://vaultwarden.vaultwarden.svc.cluster.local:80
+                      icon: vaultwarden.png
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: homepage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
