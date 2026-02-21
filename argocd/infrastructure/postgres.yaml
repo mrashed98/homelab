@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    targetRevision: "16.4.4"   # PostgreSQL 17 — pin chart version for reproducibility
+    helm:
+      values: |
+        fullnameOverride: postgres
+
+        auth:
+          # SealedSecret (see databases-sealed-secret.yaml) provides the superuser password.
+          # Secret key must be "postgres-password".
+          existingSecret: postgres-admin-secret
+          secretKeys:
+            adminPasswordKey: postgres-password
+
+        primary:
+          persistence:
+            enabled: true
+            # local-path = K3s built-in node-local provisioner.
+            # NEVER use nfs-hdd for PostgreSQL — NFS has broken POSIX file locking
+            # which corrupts WAL files and causes data loss.
+            storageClass: local-path
+            size: 20Gi
+
+          # Enable data checksums to detect corruption early
+          initdb:
+            args: "--data-checksums"
+
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+
+        # Disable read replicas — not needed for homelab
+        readReplicas:
+          replicaCount: 0
+
+        # Expose on a stable ClusterIP so all namespaces reach it as:
+        #   postgres.databases.svc.cluster.local:5432
+        service:
+          type: ClusterIP
+          ports:
+            postgresql: 5432
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: databases
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

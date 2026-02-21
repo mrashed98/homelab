@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: redis
+    targetRevision: "20.11.3"   # Redis 7.4 — pin chart version
+    helm:
+      values: |
+        fullnameOverride: redis
+
+        # Standalone is sufficient for homelab (no sentinel/replication overhead)
+        architecture: standalone
+
+        auth:
+          # Disabled for homelab simplicity — Redis holds only ephemeral job state,
+          # no sensitive data. Enable and add a SealedSecret if apps store
+          # sensitive data in Redis.
+          enabled: false
+
+        master:
+          persistence:
+            enabled: true
+            storageClass: local-path
+            size: 5Gi
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+
+        # Reachable at: redis-master.databases.svc.cluster.local:6379
+        # (Bitnami standalone creates a <fullname>-master service)
+        service:
+          type: ClusterIP
+          ports:
+            redis: 6379
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: databases
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

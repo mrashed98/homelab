@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: xtreme-downloader
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mrashed98/xtreme-downloader.git
+    targetRevision: main
+    path: helm/xtreme-downloader
+    helm:
+      values: |
+        ingress:
+          host: xtreme.local
+        media:
+          nfsServer: 192.168.68.100
+          nfsPath: /mnt/pve/BigData/k3s-shares/media
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: xtreme-downloader
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
