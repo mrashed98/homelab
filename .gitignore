@@ -21,3 +21,7 @@ inventory.ini
 # --- Kubernetes / ArgoCD ---
 # Don't ignore YAMLs, but ignore any local kubeconfig files
 kubeconfig*
+
+# --- Certificates ---
+# Keep the public CA cert, but ignore the private key
+*.key
