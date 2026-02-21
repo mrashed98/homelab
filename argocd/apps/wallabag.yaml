@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wallabag
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mrashed98/homelab.git
+    targetRevision: master
+    path: helm/wallabag
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: wallabag
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: wallabag
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: POPULATE_DATABASE
+              value: "true"
+            - name: SYMFONY__ENV__DATABASE_DRIVER
+              value: pdo_pgsql
+            - name: SYMFONY__ENV__DATABASE_HOST
+              value: "{{ .Values.db.host }}"
+            - name: SYMFONY__ENV__DATABASE_PORT
+              value: "{{ .Values.db.port }}"
+            - name: SYMFONY__ENV__DATABASE_NAME
+              value: "{{ .Values.db.name }}"
+            - name: SYMFONY__ENV__DATABASE_USER
+              value: "{{ .Values.db.user }}"
+            - name: SYMFONY__ENV__DATABASE_TABLE_PREFIX
+              value: "wallabag_"
+            - name: SYMFONY__ENV__DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: DB_PASSWORD
+            - name: SYMFONY__ENV__SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: APP_SECRET
+            - name: SYMFONY__ENV__REDIS_SCHEME
+              value: tcp
+            - name: SYMFONY__ENV__REDIS_HOST
+              value: "{{ .Values.redis.host }}"
+            - name: SYMFONY__ENV__REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: SYMFONY__ENV__DOMAIN_NAME
+              value: "https://{{ .Values.ingress.host }}"
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/wallabag/web/assets
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data
