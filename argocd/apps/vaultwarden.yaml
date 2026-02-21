@@ -6,34 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://charts.gabe565.com
-    targetRevision: 0.16.1
-    chart: vaultwarden
-    helm:
-      values: |
-        ingress:
-          enabled: true
-          hosts:
-            - host: vault.local
-              paths:
-                - path: /
-                  pathType: Prefix
-        persistence:
-          data:
-            enabled: true
-            type: nfs
-            nfs:
-              server: 192.168.68.100
-              path: /mnt/pve/BigData/k3s-share/vaultwarden
-        env:
-          DOMAIN: https://vault.local
-          SIGNUPS_ALLOWED: "true"
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 250m
-          limits:
-            memory: 1Gi
+    repoURL: https://github.com/mrashed98/homelab.git
+    targetRevision: master
+    path: helm/vaultwarden
   destination:
     server: https://kubernetes.default.svc
     namespace: vaultwarden
