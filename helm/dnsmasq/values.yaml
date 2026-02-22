@@ -1,6 +1,6 @@
 image:
   repository: 4km3/dnsmasq
-  tag: "2.90"
+  tag: "latest"
   pullPolicy: IfNotPresent
 
 # IP that all *.local domains resolve to (Traefik ingress)
