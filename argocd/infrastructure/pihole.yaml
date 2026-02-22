@@ -16,9 +16,9 @@ spec:
           repository: pihole/pihole
           tag: latest
           pullPolicy: IfNotPresent
-        dnsHostPort:
-          enabled: true
-          port: 53
+        hostNetwork: "true"
+
+        dnsPolicy: ClusterFirstWithHostNet
 
         nodeSelector:
           kubernetes.io/hostname: k3s-worker-2
