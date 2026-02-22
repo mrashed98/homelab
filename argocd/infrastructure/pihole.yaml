@@ -19,7 +19,7 @@ spec:
 
         serviceDns:
           type: LoadBalancer
-          loadBalancerIP: 192.168.68.200
+          loadBalancerIP: 192.168.68.201
           port: 53
         serviceWeb:
           type: ClusterIP
