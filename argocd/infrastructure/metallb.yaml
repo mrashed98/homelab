@@ -11,10 +11,6 @@ spec:
     targetRevision: 0.14.9
     helm:
       values: |
-        controller:
-          tolerations: []
-        speaker:
-          tolerations: []
         crds:
           enabled: true
         extraObjects:
