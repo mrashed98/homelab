@@ -14,18 +14,11 @@ spec:
         ingress:
           enabled: true
           ingressClassName: traefik
-          annotations:
-            cert-manager.io/cluster-issuer: homelab-ca-issuer
-            traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
           hosts:
             - host: jellyfin.192.168.68.150.nip.io
               paths:
                 - path: /
                   pathType: Prefix
-          tls:
-            - secretName: jellyfin-tls
-              hosts:
-                - jellyfin.192.168.68.150.nip.io
         persistence:
           config:
             enabled: true

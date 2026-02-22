@@ -17,23 +17,14 @@ spec:
           ingress:
             enabled: true
             ingressClassName: traefik
-            annotations:
-              cert-manager.io/cluster-issuer: homelab-ca-issuer
-              traefik.ingress.kubernetes.io/router.entrypoints: websecure
-              traefik.ingress.kubernetes.io/router.tls: "true"
             hosts:
               - prometheus.192.168.68.150.nip.io
-            tls:
-              - secretName: prometheus-tls
-                hosts:
-                  - prometheus.192.168.68.150.nip.io
           prometheusSpec:
             retention: 15d
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: local-path  # local-path: Prometheus TSDB has sequential write patterns
-                                     # similar to PostgreSQL WAL; NFS file locking causes data corruption
+                  storageClassName: local-path
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -43,24 +34,15 @@ spec:
           ingress:
             enabled: true
             ingressClassName: traefik
-            annotations:
-              cert-manager.io/cluster-issuer: homelab-ca-issuer
-              traefik.ingress.kubernetes.io/router.entrypoints: websecure
-              traefik.ingress.kubernetes.io/router.tls: "true"
             hosts:
               - grafana.192.168.68.150.nip.io
-            tls:
-              - secretName: grafana-tls
-                hosts:
-                  - grafana.192.168.68.150.nip.io
           admin:
             existingSecret: grafana-admin-secret
             userKey: admin-user
             passwordKey: admin-password
           persistence:
             enabled: true
-            storageClassName: local-path  # local-path: chosen for I/O performance; Grafana state
-                               # is non-critical and can be rebuilt from datasources
+            storageClassName: local-path
             size: 10Gi
 
         alertmanager:
@@ -68,7 +50,7 @@ spec:
             storage:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: local-path  # local-path: alertmanager WAL files require local storage
+                  storageClassName: local-path
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:

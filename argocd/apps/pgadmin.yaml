@@ -21,19 +21,11 @@ spec:
         ingress:
           enabled: true
           ingressClassName: traefik
-          annotations:
-            cert-manager.io/cluster-issuer: homelab-ca-issuer
-            traefik.ingress.kubernetes.io/router.entrypoints: websecure
-            traefik.ingress.kubernetes.io/router.tls: "true"
           hosts:
             - host: pgadmin.192.168.68.150.nip.io
               paths:
                 - path: /
                   pathType: Prefix
-          tls:
-            - secretName: pgadmin-tls
-              hosts:
-                - pgadmin.192.168.68.150.nip.io
 
         serverDefinitions:
           enabled: true

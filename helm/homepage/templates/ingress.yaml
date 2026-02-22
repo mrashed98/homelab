@@ -10,15 +10,8 @@ metadata:
     gethomepage.dev/group: Cluster Management
     gethomepage.dev/icon: homepage.png
     gethomepage.dev/name: Homepage
-    cert-manager.io/cluster-issuer: homelab-ca-issuer
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
-  tls:
-    - hosts:
-        - {{ .Values.ingress.host }}
-      secretName: homepage-tls
   rules:
     - host: {{ .Values.ingress.host }}
       http:
