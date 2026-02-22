@@ -34,5 +34,7 @@ spec:
                   key: DB_PASSWORD
             - name: QUARKUS_DATASOURCE_JDBC_URL
               value: "jdbc:postgresql://{{ .Values.db.host }}:{{ .Values.db.port }}/{{ .Values.db.name }}"
+            - name: COMMAFEED_USERS_ALLOW_REGISTRATIONS
+              value: "true"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

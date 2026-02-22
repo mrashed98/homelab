@@ -35,6 +35,18 @@ spec:
               hosts:
                 - pgadmin.local
 
+        serverDefinitions:
+          enabled: true
+          servers:
+            "1":
+              Name: Homelab PostgreSQL
+              Group: Servers
+              Port: 5432
+              Username: postgres
+              Host: postgres.databases.svc.cluster.local
+              SSLMode: prefer
+              MaintenanceDB: postgres
+
         persistentVolume:
           enabled: true
           storageClass: nfs-hdd
