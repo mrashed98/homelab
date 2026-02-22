@@ -1,18 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metallb
+  name: metallb-config
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://metallb.github.io/metallb
-    chart: metallb
-    targetRevision: 0.14.9
-    helm:
-      values: |
-        crds:
-          enabled: true
+    repoURL: https://github.com/mrashed98/homelab.git
+    targetRevision: master
+    path: argocd/manifests/metallb-config
   destination:
     server: https://kubernetes.default.svc
     namespace: metallb-system
