@@ -8,16 +8,32 @@ data:
     app:
       publicUrl: https://{{ .Values.ingress.host }}/
       allowRegistrations: {{ .Values.allowRegistrations }}
+      createDemoAccount: false
+      googleAnalyticsTrackingCode:
+      googleAuthKey:
       backgroundThreads: 3
       databaseUpdateThreads: 1
-      refreshIntervalMinutes: 5
+      smtpHost:
+      smtpPort:
+      smtpTls: false
+      smtpUserName:
+      smtpPassword:
+      smtpFromAddress:
+      graphiteEnabled: false
+      graphitePrefix: "commafeed"
+      graphiteHost: "localhost"
+      graphitePort: 2003
+      graphiteInterval: 60
       heavyLoad: false
+      refreshIntervalMinutes: 5
       pubsubhubbub: false
       imageProxyEnabled: false
       queryTimeout: 0
       keepStatusDays: 0
       maxFeedCapacity: 500
       cache: noop
+      announcement:
+      userAgent:
 
     database:
       driverClass: org.postgresql.Driver
@@ -45,5 +61,14 @@ data:
         com.commafeed: INFO
         liquibase: INFO
         io.dropwizard.server.ServerFactory: INFO
+        org.hibernate.orm.deprecation: "OFF"
       appenders:
         - type: console
+
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      timeout: 2000
+      database: 0
+      maxTotal: 500
