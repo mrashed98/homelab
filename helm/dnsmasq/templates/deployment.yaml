@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dnsmasq
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: dnsmasq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dnsmasq
+  template:
+    metadata:
+      labels:
+        app: dnsmasq
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      containers:
+        - name: dnsmasq
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --conf-file=/etc/dnsmasq.d/dnsmasq.conf
+          ports:
+            - containerPort: 53
+              hostPort: 53
+              protocol: UDP
+              name: dns-udp
+            - containerPort: 53
+              hostPort: 53
+              protocol: TCP
+              name: dns-tcp
+          volumeMounts:
+            - name: config
+              mountPath: /etc/dnsmasq.d
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            capabilities:
+              add:
+                - NET_BIND_SERVICE
+      volumes:
+        - name: config
+          configMap:
+            name: dnsmasq-config

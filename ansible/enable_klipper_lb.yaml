@@ -1,0 +1,22 @@
+---
+- name: Re-enable k3s built-in ServiceLB (klipper) by removing servicelb disable
+  hosts: master
+  become: true
+
+  tasks:
+    - name: Remove k3s config that disables servicelb
+      ansible.builtin.file:
+        path: /etc/rancher/k3s/config.yaml
+        state: absent
+
+    - name: Restart k3s server
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+
+    - name: Wait for k3s API server to be ready
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 6443
+        delay: 10
+        timeout: 120

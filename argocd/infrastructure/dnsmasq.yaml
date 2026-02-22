@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metallb-config
+  name: dnsmasq
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/mrashed98/homelab.git
     targetRevision: master
-    path: argocd/manifests/metallb-config
+    path: helm/dnsmasq
   destination:
     server: https://kubernetes.default.svc
-    namespace: metallb-system
+    namespace: dns
   syncPolicy:
     automated:
       prune: true
