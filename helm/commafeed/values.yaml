@@ -18,6 +18,8 @@ db:
   name: commafeed
   user: commafeed
 
+allowRegistrations: true
+
 existingSecret: commafeed-db-secret
 
 resources:

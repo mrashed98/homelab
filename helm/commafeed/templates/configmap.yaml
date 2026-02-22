@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    app:
+      publicUrl: https://{{ .Values.ingress.host }}/
+      allowRegistrations: {{ .Values.allowRegistrations }}
+      backgroundThreads: 3
+      databaseUpdateThreads: 1
+      refreshIntervalMinutes: 5
+      heavyLoad: false
+      pubsubhubbub: false
+      imageProxyEnabled: false
+      queryTimeout: 0
+      keepStatusDays: 0
+      maxFeedCapacity: 500
+      cache: noop
+
+    database:
+      driverClass: org.postgresql.Driver
+      url: jdbc:postgresql://{{ .Values.db.host }}:{{ .Values.db.port }}/{{ .Values.db.name }}
+      user: {{ .Values.db.user }}
+      password: ${DB_PASSWORD}
+      properties:
+        charSet: UTF-8
+      validationQuery: "/* CommaFeed Health Check */ SELECT 1"
+      minSize: 1
+      maxSize: 50
+      maxConnectionAge: 30m
+
+    server:
+      applicationConnectors:
+        - type: http
+          port: {{ .Values.service.port }}
+      adminConnectors:
+        - type: http
+          port: 8084
+
+    logging:
+      level: WARN
+      loggers:
+        com.commafeed: INFO
+        liquibase: INFO
+        io.dropwizard.server.ServerFactory: INFO
+      appenders:
+        - type: console

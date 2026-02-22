@@ -21,20 +21,20 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8082
+              containerPort: {{ .Values.service.port }}
           env:
-            - name: QUARKUS_DATASOURCE_DB_KIND
-              value: postgresql
-            - name: QUARKUS_DATASOURCE_USERNAME
-              value: "{{ .Values.db.user }}"
-            - name: QUARKUS_DATASOURCE_PASSWORD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.existingSecret }}
                   key: DB_PASSWORD
-            - name: QUARKUS_DATASOURCE_JDBC_URL
-              value: "jdbc:postgresql://{{ .Values.db.host }}:{{ .Values.db.port }}/{{ .Values.db.name }}"
-            - name: COMMAFEED_USERS_ALLOW_REGISTRATIONS
-              value: "true"
+          volumeMounts:
+            - name: config
+              mountPath: /config.yml
+              subPath: config.yml
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-config
