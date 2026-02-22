@@ -6,7 +6,7 @@ metadata:
 data:
   dnsmasq.conf: |
     # Resolve all *.local domains to Traefik ingress IP
-    address=/local/{{ .Values.localDomainIP }}
+    address=/.local/{{ .Values.localDomainIP }}
 
     # Upstream DNS servers
     {{- range .Values.upstreamDNS }}
