@@ -16,7 +16,7 @@ ingress:
   className: traefik
 
 config:
-  allowedHosts: localhost
+  allowedHosts: home.192.168.68.150.nip.io,localhost
   title: Homelab
   kubernetes:
     mode: cluster
