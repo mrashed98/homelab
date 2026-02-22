@@ -20,9 +20,6 @@ spec:
 
         dnsPolicy: ClusterFirstWithHostNet
 
-        nodeSelector:
-          kubernetes.io/hostname: k3s-worker-2
-
         serviceDns:
           type: ClusterIP
           port: 53
