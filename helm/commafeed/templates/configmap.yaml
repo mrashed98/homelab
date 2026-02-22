@@ -6,7 +6,7 @@ metadata:
 data:
   config.yml: |
     app:
-      publicUrl: https://192.168.68.150{{ .Values.ingress.path }}/
+      publicUrl: https://{{ .Values.ingress.host }}/
       allowRegistrations: {{ .Values.allowRegistrations }}
       createDemoAccount: false
       googleAnalyticsTrackingCode:

@@ -10,7 +10,7 @@ service:
   port: 9091
 
 ingress:
-  path: /torrent
+  host: torrent.192.168.68.150.nip.io
 
 env:
   PUID: "1000"

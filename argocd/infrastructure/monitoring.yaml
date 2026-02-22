@@ -21,12 +21,12 @@ spec:
               cert-manager.io/cluster-issuer: homelab-ca-issuer
               traefik.ingress.kubernetes.io/router.entrypoints: websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
-              traefik.ingress.kubernetes.io/router.middlewares: default-strip-prefix@kubernetescrd
-            paths:
-              - path: /prometheus
-                pathType: Prefix
+            hosts:
+              - prometheus.192.168.68.150.nip.io
             tls:
               - secretName: prometheus-tls
+                hosts:
+                  - prometheus.192.168.68.150.nip.io
           prometheusSpec:
             retention: 15d
             storageSpec:
@@ -47,12 +47,12 @@ spec:
               cert-manager.io/cluster-issuer: homelab-ca-issuer
               traefik.ingress.kubernetes.io/router.entrypoints: websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
-              traefik.ingress.kubernetes.io/router.middlewares: default-strip-prefix@kubernetescrd
-            paths:
-              - path: /grafana
-                pathType: Prefix
+            hosts:
+              - grafana.192.168.68.150.nip.io
             tls:
               - secretName: grafana-tls
+                hosts:
+                  - grafana.192.168.68.150.nip.io
           admin:
             existingSecret: grafana-admin-secret
             userKey: admin-user

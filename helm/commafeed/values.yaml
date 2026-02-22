@@ -10,7 +10,7 @@ service:
   port: 8082
 
 ingress:
-  path: /feed
+  host: feed.192.168.68.150.nip.io
 
 db:
   host: postgres.databases.svc.cluster.local

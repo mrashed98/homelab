@@ -12,7 +12,7 @@ service:
 
 ingress:
   enabled: true
-  path: /home
+  host: home.192.168.68.150.nip.io
   className: traefik
 
 config:
@@ -20,31 +20,30 @@ config:
   title: Homelab
   kubernetes:
     mode: cluster
-  baseUrl: https://192.168.68.150
   services:
     - Media:
         - Jellyfin:
-            href: https://192.168.68.150/jellyfin
+            href: https://jellyfin.192.168.68.150.nip.io
             icon: jellyfin.png
         - Transmission:
-            href: https://192.168.68.150/torrent
+            href: https://torrent.192.168.68.150.nip.io
             icon: transmission.png
     - Reading:
         - CommaFeed:
-            href: https://192.168.68.150/feed
+            href: https://feed.192.168.68.150.nip.io
             icon: commafeed.png
             description: RSS reader
         - Linkding:
-            href: https://192.168.68.150/links
+            href: https://links.192.168.68.150.nip.io
             icon: linkding.png
             description: Bookmark manager
         - Wallabag:
-            href: https://192.168.68.150/read
+            href: https://read.192.168.68.150.nip.io
             icon: wallabag.png
             description: Read-it-later
     - Security:
         - Vaultwarden:
-            href: https://192.168.68.150/vault
+            href: https://vault.192.168.68.150.nip.io
             icon: vaultwarden.png
         - Pi-hole:
             href: https://pihole.local
@@ -52,21 +51,21 @@ config:
             description: DNS ad blocker
     - Monitoring:
         - Grafana:
-            href: https://192.168.68.150/grafana
+            href: https://grafana.192.168.68.150.nip.io
             icon: grafana.png
         - Prometheus:
-            href: https://192.168.68.150/prometheus
+            href: https://prometheus.192.168.68.150.nip.io
             icon: prometheus.png
     - Cluster:
         - ArgoCD:
-            href: https://192.168.68.150/argo
+            href: https://argo.192.168.68.150.nip.io
             icon: argocd.png
         - pgAdmin:
-            href: https://192.168.68.150/pgadmin
+            href: https://pgadmin.192.168.68.150.nip.io
             icon: pgadmin.png
             description: PostgreSQL admin UI
         - Xtreme Downloader:
-            href: https://192.168.68.150/xtreme
+            href: https://xtreme.192.168.68.150.nip.io
             icon: download.png
 
 resources:

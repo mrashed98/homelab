@@ -25,7 +25,7 @@ spec:
               protocol: TCP
           env:
             - name: DOMAIN
-              value: "https://192.168.68.150/vault"
+              value: {{ .Values.ingress.host | quote }}
             - name: SIGNUPS_ALLOWED
               value: "true"
             - name: WEBSOCKET_ENABLED

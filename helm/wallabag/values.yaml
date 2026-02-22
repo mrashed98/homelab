@@ -10,7 +10,7 @@ service:
   port: 80
 
 ingress:
-  path: /read
+  host: read.192.168.68.150.nip.io
 
 db:
   host: postgres.databases.svc.cluster.local

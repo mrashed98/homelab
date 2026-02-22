@@ -11,11 +11,10 @@ service:
 
 ingress:
   enabled: true
-  path: /vault
-  className: ""
+  host: vault.192.168.68.150.nip.io
 
 env:
-  DOMAIN: https://192.168.68.150/vault
+  DOMAIN: https://vault.192.168.68.150.nip.io
   SIGNUPS_ALLOWED: "true"
   WEBSOCKET_ENABLED: "true"
 
