@@ -21,6 +21,8 @@ spec:
           type: LoadBalancer
           loadBalancerIP: 192.168.68.200
           port: 53
+          annotations:
+            metallb.io/loadBalancerIPs: 192.168.68.200
         serviceWeb:
           type: ClusterIP
           http:
@@ -41,11 +43,9 @@ spec:
             - secretName: pihole-tls
               hosts:
                 - pihole.local
-        admin:
-          password: 01cd01e1
-        DNSservers:
-          - 8.8.8.8
-          - 8.8.4.4
+        adminPassword: "01cd01e1"
+        DNS1: "8.8.8.8"
+        DNS2: "8.8.4.4"
         extraEnvVars:
           TZ: UTC
         dnsmasq:
