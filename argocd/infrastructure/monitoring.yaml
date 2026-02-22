@@ -21,12 +21,11 @@ spec:
               cert-manager.io/cluster-issuer: homelab-ca-issuer
               traefik.ingress.kubernetes.io/router.entrypoints: websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
-            hosts:
-              - prometheus.local
+            paths:
+              - path: /prometheus
+                pathType: Prefix
             tls:
               - secretName: prometheus-tls
-                hosts:
-                  - prometheus.local
           prometheusSpec:
             retention: 15d
             storageSpec:
@@ -47,12 +46,11 @@ spec:
               cert-manager.io/cluster-issuer: homelab-ca-issuer
               traefik.ingress.kubernetes.io/router.entrypoints: websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
-            hosts:
-              - grafana.local
+            paths:
+              - path: /grafana
+                pathType: Prefix
             tls:
               - secretName: grafana-tls
-                hosts:
-                  - grafana.local
           admin:
             existingSecret: grafana-admin-secret
             userKey: admin-user

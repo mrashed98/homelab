@@ -25,7 +25,7 @@ spec:
               protocol: TCP
           env:
             - name: DOMAIN
-              value: "https://vault.local"
+              value: "https://192.168.68.150/vault"
             - name: SIGNUPS_ALLOWED
               value: "true"
             - name: WEBSOCKET_ENABLED

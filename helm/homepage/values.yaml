@@ -12,38 +12,39 @@ service:
 
 ingress:
   enabled: true
-  host: home.local
+  path: /home
   className: traefik
 
 config:
-  allowedHosts: home.local,localhost
+  allowedHosts: localhost
   title: Homelab
   kubernetes:
     mode: cluster
+  baseUrl: https://192.168.68.150
   services:
     - Media:
         - Jellyfin:
-            href: https://jellyfin.local
+            href: https://192.168.68.150/jellyfin
             icon: jellyfin.png
         - Transmission:
-            href: https://torrent.local
+            href: https://192.168.68.150/torrent
             icon: transmission.png
     - Reading:
         - CommaFeed:
-            href: https://feed.local
+            href: https://192.168.68.150/feed
             icon: commafeed.png
             description: RSS reader
         - Linkding:
-            href: https://link.local
+            href: https://192.168.68.150/links
             icon: linkding.png
             description: Bookmark manager
         - Wallabag:
-            href: https://read.local
+            href: https://192.168.68.150/read
             icon: wallabag.png
             description: Read-it-later
     - Security:
         - Vaultwarden:
-            href: https://vault.local
+            href: https://192.168.68.150/vault
             icon: vaultwarden.png
         - Pi-hole:
             href: https://pihole.local
@@ -51,21 +52,21 @@ config:
             description: DNS ad blocker
     - Monitoring:
         - Grafana:
-            href: https://grafana.local
+            href: https://192.168.68.150/grafana
             icon: grafana.png
         - Prometheus:
-            href: https://prometheus.local
+            href: https://192.168.68.150/prometheus
             icon: prometheus.png
     - Cluster:
         - ArgoCD:
-            href: https://argo.local
+            href: https://192.168.68.150/argo
             icon: argocd.png
         - pgAdmin:
-            href: https://pgadmin.local
+            href: https://192.168.68.150/pgadmin
             icon: pgadmin.png
             description: PostgreSQL admin UI
         - Xtreme Downloader:
-            href: https://xtreme.local
+            href: https://192.168.68.150/xtreme
             icon: download.png
 
 resources:

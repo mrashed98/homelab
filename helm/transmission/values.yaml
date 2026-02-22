@@ -10,7 +10,7 @@ service:
   port: 9091
 
 ingress:
-  host: torrent.local
+  path: /torrent
 
 env:
   PUID: "1000"

@@ -12,7 +12,7 @@ spec:
     helm:
       values: |
         ingress:
-          host: xtreme.local
+          path: /xtreme
         media:
           nfsServer: 192.168.68.100
           nfsPath: /mnt/pve/BigData/k3s-shares/media

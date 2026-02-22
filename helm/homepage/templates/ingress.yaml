@@ -16,14 +16,11 @@ metadata:
 spec:
   ingressClassName: traefik
   tls:
-    - hosts:
-        - home.local
-      secretName: homepage-tls
+    - secretName: homepage-tls
   rules:
-    - host: home.local
-      http:
+    - http:
         paths:
-          - path: /
+          - path: {{ .Values.ingress.path }}
             pathType: Prefix
             backend:
               service:

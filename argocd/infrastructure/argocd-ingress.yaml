@@ -10,14 +10,11 @@ metadata:
 spec:
   ingressClassName: traefik
   tls:
-    - hosts:
-        - argo.local
-      secretName: argocd-tls
+    - secretName: argocd-tls
   rules:
-    - host: argo.local
-      http:
+    - http:
         paths:
-          - path: /
+          - path: /argo
             pathType: Prefix
             backend:
               service:

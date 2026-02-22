@@ -13,11 +13,16 @@ spec:
       values: |
         ingress:
           enabled: true
-          hosts:
-            - host: jellyfin.local
-              paths:
-                - path: /
-                  pathType: Prefix
+          ingressClassName: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: homelab-ca-issuer
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+            traefik.ingress.kubernetes.io/router.tls: "true"
+          paths:
+            - path: /jellyfin
+              pathType: Prefix
+          tls:
+            - secretName: jellyfin-tls
         persistence:
           config:
             enabled: true

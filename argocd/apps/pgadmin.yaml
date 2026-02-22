@@ -25,15 +25,11 @@ spec:
             cert-manager.io/cluster-issuer: homelab-ca-issuer
             traefik.ingress.kubernetes.io/router.entrypoints: websecure
             traefik.ingress.kubernetes.io/router.tls: "true"
-          hosts:
-            - host: pgadmin.local
-              paths:
-                - path: /
-                  pathType: Prefix
+          paths:
+            - path: /pgadmin
+              pathType: Prefix
           tls:
             - secretName: pgadmin-tls
-              hosts:
-                - pgadmin.local
 
         serverDefinitions:
           enabled: true

@@ -11,18 +11,11 @@ service:
 
 ingress:
   enabled: true
+  path: /vault
   className: ""
-  host: vault.local
-
-persistence:
-  enabled: true
-  size: 1Gi
-  nfs:
-    server: 192.168.68.100
-    path: /mnt/pve/BigData/k3s-shares/vaultwarden
 
 env:
-  DOMAIN: https://vault.local
+  DOMAIN: https://192.168.68.150/vault
   SIGNUPS_ALLOWED: "true"
   WEBSOCKET_ENABLED: "true"
 

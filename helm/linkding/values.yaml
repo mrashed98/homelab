@@ -10,7 +10,7 @@ service:
   port: 9090
 
 ingress:
-  host: links.local
+  path: /links
 
 db:
   host: postgres.databases.svc.cluster.local
