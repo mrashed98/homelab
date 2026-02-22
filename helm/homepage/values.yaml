@@ -21,20 +21,51 @@ config:
     mode: cluster
   services:
     - Media:
-        - jellyfin:
+        - Jellyfin:
             href: http://jellyfin.jellyfin.svc.cluster.local:8096
             icon: jellyfin.png
-        - xtreme-downloader:
-            href: http://xtreme-downloader.xtreme-downloader.svc.cluster.local:8080
-            icon: download.png
+        - Transmission:
+            href: http://transmission.downloads.svc.cluster.local:9091
+            icon: transmission.png
+    - Reading:
+        - CommaFeed:
+            href: http://commafeed.commafeed.svc.cluster.local:8082
+            icon: commafeed.png
+            description: RSS reader
+        - Linkding:
+            href: http://linkding.linkding.svc.cluster.local:9090
+            icon: linkding.png
+            description: Bookmark manager
+        - Wallabag:
+            href: http://wallabag.wallabag.svc.cluster.local:80
+            icon: wallabag.png
+            description: Read-it-later
     - Security:
-        - vaultwarden:
+        - Vaultwarden:
             href: http://vaultwarden.vaultwarden.svc.cluster.local:80
             icon: vaultwarden.png
+        - Pi-hole:
+            href: http://pihole-web.pihole.svc.cluster.local:80
+            icon: pi-hole.png
+            description: DNS ad blocker
+    - Monitoring:
+        - Grafana:
+            href: http://monitoring-grafana.monitoring.svc.cluster.local:80
+            icon: grafana.png
+        - Prometheus:
+            href: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
+            icon: prometheus.png
     - Cluster:
-        - argocd:
+        - ArgoCD:
             href: http://argocd-server.argocd.svc.cluster.local:80
             icon: argocd.png
+        - pgAdmin:
+            href: http://pgadmin-pgadmin4.pgadmin.svc.cluster.local:80
+            icon: pgadmin.png
+            description: PostgreSQL admin UI
+        - Xtreme Downloader:
+            href: http://xtreme-downloader.xtreme-downloader.svc.cluster.local:8080
+            icon: download.png
 
 resources:
   requests:
