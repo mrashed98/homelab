@@ -16,8 +16,15 @@ spec:
           repository: pihole/pihole
           tag: latest
           pullPolicy: IfNotPresent
+        dnsHostPort:
+          enabled: true
+          port: 53
+
+        nodeSelector:
+          kubernetes.io/hostname: k3s-worker-2
+
         serviceDns:
-          type: LoadBalancer
+          type: ClusterIP
           port: 53
         serviceWeb:
           type: ClusterIP
