@@ -21,6 +21,7 @@ spec:
               cert-manager.io/cluster-issuer: homelab-ca-issuer
               traefik.ingress.kubernetes.io/router.entrypoints: websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
+              traefik.ingress.kubernetes.io/router.base: /
             paths:
               - path: /prometheus
                 pathType: Prefix
@@ -46,6 +47,7 @@ spec:
               cert-manager.io/cluster-issuer: homelab-ca-issuer
               traefik.ingress.kubernetes.io/router.entrypoints: websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
+              traefik.ingress.kubernetes.io/router.base: /
             paths:
               - path: /grafana
                 pathType: Prefix
