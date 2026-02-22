@@ -19,6 +19,12 @@ spec:
         - name: commafeed
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              sed "s|\${DB_PASSWORD}|${DB_PASSWORD}|g" /config-template/config.yml > /config-writable/config.yml
+              exec java -Djava.net.preferIPv4Stack=true -jar /commafeed.jar server /config-writable/config.yml
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -29,12 +35,15 @@ spec:
                   name: {{ .Values.existingSecret }}
                   key: DB_PASSWORD
           volumeMounts:
-            - name: config
-              mountPath: /config.yml
-              subPath: config.yml
+            - name: config-template
+              mountPath: /config-template
+            - name: config-writable
+              mountPath: /config-writable
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: config
+        - name: config-template
           configMap:
             name: {{ .Release.Name }}-config
+        - name: config-writable
+          emptyDir: {}
