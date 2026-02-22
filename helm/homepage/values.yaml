@@ -6,7 +6,8 @@ image:
 replicaCount: 1
 
 service:
-  type: ClusterIP
+  type: NodePort
+  nodePort: 30080
   port: 3000
 
 ingress:

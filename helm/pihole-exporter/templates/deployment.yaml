@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: pihole-exporter
+      annotations:
+        checksum/secret: {{ .Values.existingSecret | sha256sum }}
     spec:
       containers:
         - name: pihole-exporter
