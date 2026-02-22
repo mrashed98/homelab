@@ -1,0 +1,27 @@
+---
+- name: Disable k3s built-in ServiceLB (klipper) on master to allow MetalLB
+  hosts: master
+  become: true
+
+  tasks:
+    - name: Write k3s config to disable servicelb
+      ansible.builtin.copy:
+        dest: /etc/rancher/k3s/config.yaml
+        content: |
+          disable:
+            - servicelb
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart k3s server
+      ansible.builtin.systemd:
+        name: k3s
+        state: restarted
+
+    - name: Wait for k3s API server to be ready
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 6443
+        delay: 10
+        timeout: 120
