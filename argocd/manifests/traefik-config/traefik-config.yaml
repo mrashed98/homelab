@@ -6,9 +6,5 @@ metadata:
 spec:
   valuesContent: |-
     service:
-      type: ClusterIP
-    ports:
-      web:
-        hostPort: 80
-      websecure:
-        hostPort: 443
+      annotations:
+        metallb.io/loadBalancerIPs: "192.168.68.253"

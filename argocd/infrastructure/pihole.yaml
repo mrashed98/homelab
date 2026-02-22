@@ -51,7 +51,7 @@ spec:
           TZ: UTC
         dnsmasq:
           customDnsEntries:
-            - address=/local/192.168.68.150
+            - address=/local/192.168.68.253
         persistentVolumeClaim:
           enabled: true
           storageClassName: nfs-hdd
