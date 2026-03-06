@@ -47,6 +47,7 @@ spec:
 
         alertmanager:
           alertmanagerSpec:
+            configSecret: alertmanager-telegram-config
             storage:
               volumeClaimTemplate:
                 spec:
