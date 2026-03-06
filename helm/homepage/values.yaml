@@ -45,10 +45,6 @@ config:
         - Vaultwarden:
             href: https://vault.192.168.68.150.nip.io
             icon: vaultwarden.png
-        - Pi-hole:
-            href: https://pihole.local
-            icon: pi-hole.png
-            description: DNS ad blocker
     - Monitoring:
         - Grafana:
             href: https://grafana.192.168.68.150.nip.io
