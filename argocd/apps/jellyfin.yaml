@@ -35,6 +35,23 @@ spec:
             cpu: 250m
           limits:
             memory: 2Gi
+        affinity:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                    - key: node-type
+                      operator: In
+                      values:
+                        - worker
+        topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: jellyfin
   destination:
     server: https://kubernetes.default.svc
     namespace: jellyfin

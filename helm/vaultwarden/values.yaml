@@ -25,3 +25,18 @@ resources:
   limits:
     memory: 256Mi
     cpu: 250m
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - worker
+
+topologySpread:
+  enabled: true
+
