@@ -21,6 +21,13 @@ spec:
               - prometheus.192.168.68.150.nip.io
           prometheusSpec:
             retention: 15d
+            resources:
+              requests:
+                memory: 512Mi
+                cpu: 100m
+              limits:
+                memory: 1Gi
+                cpu: 500m
             storageSpec:
               volumeClaimTemplate:
                 spec:
@@ -44,6 +51,13 @@ spec:
             enabled: true
             storageClassName: local-path
             size: 10Gi
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+              cpu: 250m
 
         alertmanager:
           alertmanagerSpec:

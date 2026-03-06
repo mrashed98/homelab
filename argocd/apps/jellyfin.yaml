@@ -31,10 +31,10 @@ spec:
           type: ClusterIP
         resources:
           requests:
-            memory: 1Gi
-            cpu: 500m
+            memory: 256Mi
+            cpu: 250m
           limits:
-            memory: 4Gi
+            memory: 2Gi
   destination:
     server: https://kubernetes.default.svc
     namespace: jellyfin
