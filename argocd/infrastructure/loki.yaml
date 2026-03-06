@@ -36,11 +36,11 @@ spec:
             size: 10Gi
           resources:
             requests:
-              memory: 128Mi
+              memory: 256Mi
               cpu: 100m
             limits:
               memory: 512Mi
-              cpu: 500m
+              cpu: 300m
 
         read:
           replicas: 0
@@ -50,6 +50,18 @@ spec:
 
         backend:
           replicas: 0
+
+        gateway:
+          enabled: false
+
+        lokiCanary:
+          enabled: false
+
+        chunksCache:
+          enabled: false
+
+        resultsCache:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

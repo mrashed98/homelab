@@ -16,6 +16,14 @@ spec:
         media:
           nfsServer: 192.168.68.100
           nfsPath: /mnt/pve/BigData/k3s-shares/media
+        backend:
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 250m
   destination:
     server: https://kubernetes.default.svc
     namespace: xtreme-downloader

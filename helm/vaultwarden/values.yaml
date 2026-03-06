@@ -21,10 +21,10 @@ env:
 resources:
   requests:
     memory: 32Mi
-    cpu: 50m
+    cpu: 25m
   limits:
-    memory: 256Mi
-    cpu: 250m
+    memory: 128Mi
+    cpu: 100m
 
 affinity:
   nodeAffinity:

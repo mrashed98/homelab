@@ -24,10 +24,10 @@ existingSecret: commafeed-db-secret
 
 resources:
   requests:
-    memory: 256Mi
+    memory: 128Mi
     cpu: 100m
   limits:
-    memory: 512Mi
+    memory: 256Mi
     cpu: 500m
 
 affinity:
@@ -48,7 +48,7 @@ topologySpread:
 autoscaling:
   enabled: true
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
 
