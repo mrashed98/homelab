@@ -21,11 +21,19 @@ spec:
         ingress:
           enabled: true
           ingressClassName: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+            traefik.ingress.kubernetes.io/router.tls: "true"
           hosts:
-            - host: pgadmin.192.168.68.150.nip.io
+            - host: pgadmin.voltafinancials.com
               paths:
                 - path: /
                   pathType: Prefix
+          tls:
+            - hosts:
+                - pgadmin.voltafinancials.com
+              secretName: pgadmin-tls
 
         serverDefinitions:
           enabled: true

@@ -4,17 +4,17 @@ metadata:
   name: argocd-ingress
   namespace: argocd
   annotations:
-    cert-manager.io/cluster-issuer: homelab-ca-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - argo.192.168.68.150.nip.io
+        - argo.voltafinancials.com
       secretName: argocd-tls
   rules:
-    - host: argo.192.168.68.150.nip.io
+    - host: argo.voltafinancials.com
       http:
         paths:
           - path: /

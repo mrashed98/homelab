@@ -10,7 +10,7 @@ service:
   port: 80
 
 ingress:
-  host: read.192.168.68.150.nip.io
+  host: read.voltafinancials.com
 
 db:
   host: postgres.databases.svc.cluster.local

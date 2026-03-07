@@ -10,7 +10,7 @@ service:
   port: 8082
 
 ingress:
-  host: feed.192.168.68.150.nip.io
+  host: feed.voltafinancials.com
 
 db:
   host: postgres.databases.svc.cluster.local

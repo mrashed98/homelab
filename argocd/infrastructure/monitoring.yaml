@@ -17,8 +17,16 @@ spec:
           ingress:
             enabled: true
             ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              traefik.ingress.kubernetes.io/router.entrypoints: websecure
+              traefik.ingress.kubernetes.io/router.tls: "true"
             hosts:
-              - prometheus.192.168.68.150.nip.io
+              - prometheus.voltafinancials.com
+            tls:
+              - hosts:
+                  - prometheus.voltafinancials.com
+                secretName: prometheus-tls
           prometheusSpec:
             retention: 15d
             resources:
@@ -47,8 +55,16 @@ spec:
           ingress:
             enabled: true
             ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              traefik.ingress.kubernetes.io/router.entrypoints: websecure
+              traefik.ingress.kubernetes.io/router.tls: "true"
             hosts:
-              - grafana.192.168.68.150.nip.io
+              - grafana.voltafinancials.com
+            tls:
+              - hosts:
+                  - grafana.voltafinancials.com
+                secretName: grafana-tls
           admin:
             existingSecret: grafana-admin-secret
             userKey: admin-user

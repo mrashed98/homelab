@@ -11,10 +11,10 @@ service:
 
 ingress:
   enabled: true
-  host: vault.192.168.68.150.nip.io
+  host: vault.voltafinancials.com
 
 env:
-  DOMAIN: https://vault.192.168.68.150.nip.io
+  DOMAIN: https://vault.voltafinancials.com
   SIGNUPS_ALLOWED: "true"
   WEBSOCKET_ENABLED: "true"
 

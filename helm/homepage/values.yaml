@@ -12,56 +12,56 @@ service:
 
 ingress:
   enabled: true
-  host: home.192.168.68.150.nip.io
+  host: home.voltafinancials.com
   className: traefik
 
 config:
-  allowedHosts: home.192.168.68.150.nip.io,localhost
+  allowedHosts: home.voltafinancials.com,localhost
   title: Homelab
   kubernetes:
     mode: cluster
   services:
     - Media:
         - Jellyfin:
-            href: https://jellyfin.192.168.68.150.nip.io
+            href: https://jellyfin.voltafinancials.com
             icon: jellyfin.png
         - Transmission:
-            href: https://torrent.192.168.68.150.nip.io
+            href: https://torrent.voltafinancials.com
             icon: transmission.png
     - Reading:
         - CommaFeed:
-            href: https://feed.192.168.68.150.nip.io
+            href: https://feed.voltafinancials.com
             icon: commafeed.png
             description: RSS reader
         - Linkding:
-            href: https://links.192.168.68.150.nip.io
+            href: https://links.voltafinancials.com
             icon: linkding.png
             description: Bookmark manager
         - Wallabag:
-            href: https://read.192.168.68.150.nip.io
+            href: https://read.voltafinancials.com
             icon: wallabag.png
             description: Read-it-later
     - Security:
         - Vaultwarden:
-            href: https://vault.192.168.68.150.nip.io
+            href: https://vault.voltafinancials.com
             icon: vaultwarden.png
     - Monitoring:
         - Grafana:
-            href: https://grafana.192.168.68.150.nip.io
+            href: https://grafana.voltafinancials.com
             icon: grafana.png
         - Prometheus:
-            href: https://prometheus.192.168.68.150.nip.io
+            href: https://prometheus.voltafinancials.com
             icon: prometheus.png
     - Cluster:
         - ArgoCD:
-            href: https://argo.192.168.68.150.nip.io
+            href: https://argo.voltafinancials.com
             icon: argocd.png
         - pgAdmin:
-            href: https://pgadmin.192.168.68.150.nip.io
+            href: https://pgadmin.voltafinancials.com
             icon: pgadmin.png
             description: PostgreSQL admin UI
         - Xtreme Downloader:
-            href: https://xtreme.192.168.68.150.nip.io
+            href: https://xtreme.voltafinancials.com
             icon: download.png
 
 resources:
