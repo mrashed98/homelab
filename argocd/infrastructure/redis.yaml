@@ -33,7 +33,7 @@ spec:
               cpu: 50m
             limits:
               memory: 128Mi
-              cpu: 100m
+              cpu: 200m
 
         # Reachable at: redis-master.databases.svc.cluster.local:6379
         # (Bitnami standalone creates a <fullname>-master service)

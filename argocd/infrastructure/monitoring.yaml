@@ -93,6 +93,27 @@ spec:
                     requests:
                       storage: 2Gi
 
+        # k3s embeds scheduler, controller-manager, proxy, and etcd — their scrape
+        # endpoints don't exist at the upstream ports kube-prometheus-stack expects,
+        # causing KubeSchedulerDown / KubeControllerManagerDown / KubeProxyDown /
+        # etcdInsufficientMembers alerts to fire permanently on every k3s cluster.
+        kubeScheduler:
+          enabled: false
+
+        kubeControllerManager:
+          enabled: false
+
+        kubeProxy:
+          enabled: false
+
+        kubeEtcd:
+          enabled: false
+
+        defaultRules:
+          rules:
+            etcd: false
+            kubeScheduler: false
+
         nodeExporter:
           enabled: true
 

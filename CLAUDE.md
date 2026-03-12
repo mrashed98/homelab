@@ -99,3 +99,10 @@ All ArgoCD apps use `automated` sync with `prune: true` and `selfHeal: true`.
 - Homepage dashboard: `https://home.local`
 - Vaultwarden: `https://vault.local`
 - Pi-hole: `https://pihole.local`
+
+## Active Technologies
+- YAML (Kubernetes manifests, Helm values) + ArgoCD, kube-prometheus-stack 82.2.0, Bitnami Sealed Secrets, (001-cluster-alarms-cleanup)
+- N/A — no new storage; removing PVCs for decommissioned services (001-cluster-alarms-cleanup)
+
+## Recent Changes
+- 001-cluster-alarms-cleanup: Added YAML (Kubernetes manifests, Helm values) + ArgoCD, kube-prometheus-stack 82.2.0, Bitnami Sealed Secrets,
