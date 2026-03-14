@@ -371,7 +371,12 @@ spec:
                       "defaults": {
                         "workspace": "/home/node/.openclaw/workspace",
                         "model": {
-                          "primary": "zhipu/glm-5"
+                          "primary": "zhipu/glm-4.7",
+                          "providers": {
+                            "zhipu": {
+                              "baseURL": "https://api.z.ai/api/coding/paas/v4"
+                            }
+                          }
                         },
                         "userTimezone": "UTC",
                         "timeoutSeconds": 600,
