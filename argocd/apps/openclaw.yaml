@@ -12,7 +12,7 @@ spec:
     helm:
       values: |
         app-template:
-          openclawVersion: "2026.3.13"
+          openclawVersion: "2026.3.13-1"
           chromiumVersion: "146.0.7680.72"
           configMode: merge
 
