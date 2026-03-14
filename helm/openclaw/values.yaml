@@ -1,0 +1,541 @@
+app-template:
+  openclawVersion: "2026.3.13"
+  chromiumVersion: "146.0.7680.72"
+  configMode: merge
+
+  defaultPodOptions:
+    securityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+
+  controllers:
+    main:
+      replicas: 1
+      strategy: Recreate
+
+      initContainers:
+        init-config:
+          image:
+            repository: ghcr.io/openclaw/openclaw
+            tag: "{{ .Values.openclawVersion }}"
+          command:
+            - sh
+            - -c
+            - |
+              log() { echo "[$(date -Iseconds)] [init-config] $*"; }
+
+              log "Starting config initialization"
+              mkdir -p /home/node/.openclaw
+              CONFIG_MODE="${CONFIG_MODE:-merge}"
+
+              if [ "$CONFIG_MODE" = "merge" ] && [ -f /home/node/.openclaw/openclaw.json ]; then
+                log "Mode: merge - merging Helm config with existing config"
+                if node -e "
+                  const fs = require('fs');
+                  const stripComments = (s) => {
+                    let r = '', q = false, i = 0;
+                    while (i < s.length) {
+                      if (q) {
+                        if (s[i] === '\\\\') { r += s[i] + s[i+1]; i += 2; continue; }
+                        if (s[i] === '\"') q = false;
+                        r += s[i++];
+                      } else if (s[i] === '\"') {
+                        q = true; r += s[i++];
+                      } else if (s[i] === '/' && s[i+1] === '/') {
+                        while (i < s.length && s[i] !== '\n') i++;
+                      } else { r += s[i++]; }
+                    }
+                    return r;
+                  };
+                  let existing;
+                  try {
+                    existing = JSON.parse(stripComments(fs.readFileSync('/home/node/.openclaw/openclaw.json', 'utf8')));
+                  } catch (e) {
+                    console.error('[init-config] Warning: existing config is not valid JSON, will overwrite');
+                    process.exit(1);
+                  }
+                  const helm = JSON.parse(stripComments(fs.readFileSync('/config/openclaw.json', 'utf8')));
+                  const deepMerge = (target, source) => {
+                    for (const key of Object.keys(source)) {
+                      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                        target[key] = target[key] || {};
+                        deepMerge(target[key], source[key]);
+                      } else {
+                        target[key] = source[key];
+                      }
+                    }
+                    return target;
+                  };
+                  const merged = deepMerge(existing, helm);
+                  fs.writeFileSync('/home/node/.openclaw/openclaw.json', JSON.stringify(merged, null, 2));
+                "; then
+                  log "Config merged successfully"
+                else
+                  log "WARNING: Merge failed (existing config may not be valid JSON), falling back to overwrite"
+                  cp /config/openclaw.json /home/node/.openclaw/openclaw.json
+                fi
+              else
+                if [ ! -f /home/node/.openclaw/openclaw.json ]; then
+                  log "Fresh install - writing initial config"
+                else
+                  log "Mode: overwrite - replacing config with Helm values"
+                fi
+                cp /config/openclaw.json /home/node/.openclaw/openclaw.json
+              fi
+              log "Config initialization complete"
+          env:
+            CONFIG_MODE: "{{ .Values.configMode | default \"merge\" }}"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+        init-skills:
+          image:
+            repository: ghcr.io/openclaw/openclaw
+            tag: "{{ .Values.openclawVersion }}"
+          command:
+            - sh
+            - -c
+            - |
+              log() { echo "[$(date -Iseconds)] [init-skills] $*"; }
+
+              log "Starting skills initialization"
+
+              mkdir -p /home/node/.openclaw/bin
+              mkdir -p /home/node/.openclaw/workspace/skills
+              cd /home/node/.openclaw/workspace
+
+              export PATH="/home/node/.openclaw/bin:$PATH"
+
+              log "Installing Terraform 1.8.0..."
+              curl -fsSL https://releases.hashicorp.com/terraform/1.8.0/terraform_1.8.0_linux_amd64.zip -o terraform.zip
+              unzip -o terraform.zip -d /home/node/.openclaw/bin
+              rm terraform.zip
+              chmod +x /home/node/.openclaw/bin/terraform
+
+              log "Installing Terragrunt v0.59.0..."
+              curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v0.59.0/terragrunt_linux_amd64 -o /home/node/.openclaw/bin/terragrunt
+              chmod +x /home/node/.openclaw/bin/terragrunt
+
+              log "Installing AWS CLI v2..."
+              curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -o awscliv2.zip
+              ./aws/install --install-dir /home/node/.openclaw/aws-cli --bin-dir /home/node/.openclaw/bin || true
+              rm -rf aws awscliv2.zip
+
+              log "Installing GitHub CLI..."
+              curl -fsSL https://github.com/cli/cli/releases/download/v2.50.0/gh_2.50.0_linux_amd64.tar.gz -o gh.tar.gz
+              tar -xzf gh.tar.gz
+              cp gh_*/bin/gh /home/node/.openclaw/bin/
+              rm -rf gh_* gh.tar.gz
+
+              log "Setting up SSH keys for GitHub..."
+              mkdir -p ~/.ssh
+              if [ -f /secrets/github-ssh/id_ed25519 ]; then
+                cp /secrets/github-ssh/id_ed25519 ~/.ssh/
+                chmod 600 ~/.ssh/id_ed25519
+              fi
+              if [ -f /secrets/github-ssh/config ]; then
+                cp /secrets/github-ssh/config ~/.ssh/config
+              fi
+
+              log "Setting up AWS credentials..."
+              mkdir -p ~/.aws
+              if [ -f /secrets/aws-credentials/credentials ]; then
+                cp /secrets/aws-credentials/credentials ~/.aws/credentials
+              fi
+              if [ -f /secrets/aws-credentials/config ]; then
+                cp /secrets/aws-credentials/config ~/.aws/config
+              fi
+
+              log "Installing ClawHub skills..."
+              for skill in weather; do
+                if [ -d "skills/$skill" ]; then
+                  log "Skill already installed: $skill"
+                  continue
+                fi
+                log "Installing skill: $skill"
+                npx -y clawhub install "$skill" --no-input || log "WARNING: Failed to install skill: $skill"
+              done
+
+              log "Verifying installations..."
+              terraform --version || log "WARNING: Terraform not found"
+              terragrunt --version || log "WARNING: Terragrunt not found"
+              aws --version || log "WARNING: AWS CLI not found"
+              gh --version || log "WARNING: GitHub CLI not found"
+
+              log "Skills initialization complete"
+          env:
+            HOME: /tmp
+            NPM_CONFIG_CACHE: /tmp/.npm
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+      containers:
+        main:
+          image:
+            repository: ghcr.io/openclaw/openclaw
+            tag: "{{ .Values.openclawVersion }}"
+            pullPolicy: IfNotPresent
+          command:
+            - node
+            - dist/index.js
+          args:
+            - gateway
+            - --bind
+            - lan
+            - --port
+            - "18789"
+          envFrom:
+            - secretRef:
+                name: openclaw-credentials
+          env:
+            PATH: /home/node/.openclaw/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            AWS_CONFIG_FILE: /home/node/.aws/config
+            AWS_SHARED_CREDENTIALS_FILE: /home/node/.aws/credentials
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          probes:
+            liveness:
+              enabled: true
+              type: TCP
+              spec:
+                tcpSocket:
+                  port: 18789
+                initialDelaySeconds: 30
+                periodSeconds: 30
+                timeoutSeconds: 5
+                failureThreshold: 3
+            readiness:
+              enabled: true
+              type: TCP
+              spec:
+                tcpSocket:
+                  port: 18789
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 5
+                failureThreshold: 3
+            startup:
+              enabled: true
+              type: TCP
+              spec:
+                tcpSocket:
+                  port: 18789
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                timeoutSeconds: 5
+                failureThreshold: 30
+
+        chromium:
+          enabled: true
+          image:
+            repository: chromedp/headless-shell
+            tag: "{{ .Values.chromiumVersion }}"
+          env:
+            XDG_CACHE_HOME: /tmp
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /json/version
+                  port: 9222
+                initialDelaySeconds: 10
+                periodSeconds: 30
+                timeoutSeconds: 5
+                failureThreshold: 6
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /json/version
+                  port: 9222
+                initialDelaySeconds: 5
+                periodSeconds: 10
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /json/version
+                  port: 9222
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                timeoutSeconds: 5
+                failureThreshold: 12
+
+  configMaps:
+    config:
+      enabled: true
+      data:
+        bash_aliases: |
+          alias openclaw='node /app/dist/index.js'
+          alias tf='terraform'
+          alias tg='terragrunt'
+        openclaw.json: |
+          {
+            "gateway": {
+              "port": 18789,
+              "mode": "local",
+              "trustedProxies": ["10.0.0.1"]
+            },
+            "browser": {
+              "enabled": true,
+              "defaultProfile": "default",
+              "profiles": {
+                "default": {
+                  "cdpUrl": "http://localhost:9222",
+                  "color": "#4285F4"
+                }
+              }
+            },
+            "agents": {
+              "defaults": {
+                "workspace": "/home/node/.openclaw/workspace",
+                "model": {
+                  "primary": "zhipu/glm-5"
+                },
+                "userTimezone": "UTC",
+                "timeoutSeconds": 600,
+                "maxConcurrent": 1
+              },
+              "list": [
+                {
+                  "id": "main",
+                  "default": true,
+                  "identity": {
+                    "name": "OpenClaw",
+                    "emoji": "🦞"
+                  }
+                }
+              ]
+            },
+            "session": {
+              "scope": "per-sender",
+              "store": "/home/node/.openclaw/sessions",
+              "reset": {
+                "mode": "idle",
+                "idleMinutes": 60
+              }
+            },
+            "logging": {
+              "level": "info",
+              "consoleLevel": "info",
+              "consoleStyle": "compact",
+              "redactSensitive": "tools"
+            },
+            "tools": {
+              "profile": "full",
+              "web": {
+                "search": {
+                  "enabled": false
+                },
+                "fetch": {
+                  "enabled": true
+                }
+              }
+            },
+            "channels": {
+              "telegram": {
+                "botToken": "${TELEGRAM_BOT_TOKEN}",
+                "enabled": true
+              }
+            }
+          }
+
+  service:
+    main:
+      controller: main
+      ipFamilyPolicy: SingleStack
+      ipFamilies:
+        - IPv4
+      ports:
+        http:
+          port: 18789
+
+  ingress:
+    main:
+      enabled: true
+      className: traefik
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.tls: "true"
+      hosts:
+        - host: claw.voltafinancials.com
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - secretName: openclaw-tls
+          hosts:
+            - claw.voltafinancials.com
+
+  persistence:
+    config:
+      enabled: true
+      type: configMap
+      identifier: config
+      advancedMounts:
+        main:
+          init-config:
+            - path: /config
+              readOnly: true
+
+    bash-aliases:
+      enabled: true
+      type: configMap
+      identifier: config
+      advancedMounts:
+        main:
+          main:
+            - path: /home/node/.bash_aliases
+              subPath: bash_aliases
+              readOnly: true
+
+    data:
+      enabled: true
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      storageClass: nfs-hdd
+      advancedMounts:
+        main:
+          init-config:
+            - path: /home/node/.openclaw
+          init-skills:
+            - path: /home/node/.openclaw
+          main:
+            - path: /home/node/.openclaw
+
+    github-ssh:
+      enabled: true
+      type: secret
+      identifier: github-ssh
+      advancedMounts:
+        main:
+          init-skills:
+            - path: /secrets/github-ssh
+              readOnly: true
+
+    aws-credentials:
+      enabled: true
+      type: secret
+      identifier: aws-credentials
+      advancedMounts:
+        main:
+          init-skills:
+            - path: /secrets/aws-credentials
+              readOnly: true
+
+    tmp:
+      enabled: true
+      type: emptyDir
+      advancedMounts:
+        main:
+          init-config:
+            - path: /tmp
+          init-skills:
+            - path: /tmp
+          main:
+            - path: /tmp
+          chromium:
+            - path: /tmp
+
+  networkpolicies:
+    main:
+      enabled: true
+      controller: main
+      policyTypes:
+        - Ingress
+        - Egress
+      rules:
+        ingress:
+          - from:
+              - namespaceSelector: {}
+            ports:
+              - protocol: TCP
+                port: 18789
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+                podSelector:
+                  matchLabels:
+                    k8s-app: kube-dns
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+            ports:
+              - protocol: TCP
+                port: 22
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+            ports:
+              - protocol: TCP
+                port: 443
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+                  except:
+                    - 10.0.0.0/8
+                    - 172.16.0.0/12
+                    - 192.168.0.0/16
+                    - 169.254.0.0/16
+                    - 100.64.0.0/10
