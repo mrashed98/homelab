@@ -352,7 +352,7 @@ spec:
                     "gateway": {
                       "port": 18789,
                       "mode": "local",
-                      "trustedProxies": ["10.0.0.1"],
+                      "trustedProxies": ["10.0.0.0/8"],
                       "controlUi": {
                         "allowedOrigins": ["https://claw.voltafinancials.com"]
                       }
