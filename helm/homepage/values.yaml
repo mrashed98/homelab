@@ -33,7 +33,7 @@ config:
             href: https://feed.voltafinancials.com
             icon: commafeed.png
             description: RSS reader
-- Wallabag:
+        - Wallabag:
             href: https://read.voltafinancials.com
             icon: wallabag.png
             description: Read-it-later
