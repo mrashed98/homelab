@@ -127,26 +127,42 @@ spec:
                       export PATH="/home/node/.openclaw/bin:$PATH"
 
                       log "Installing Terraform 1.8.0..."
-                      curl -fsSL https://releases.hashicorp.com/terraform/1.8.0/terraform_1.8.0_linux_amd64.zip -o terraform.zip
-                      unzip -o terraform.zip -d /home/node/.openclaw/bin
-                      rm terraform.zip
-                      chmod +x /home/node/.openclaw/bin/terraform
+                      if [ ! -f /home/node/.openclaw/bin/terraform ]; then
+                        curl -fsSL https://releases.hashicorp.com/terraform/1.8.0/terraform_1.8.0_linux_amd64.zip -o terraform.zip
+                        unzip -o terraform.zip -d /home/node/.openclaw/bin
+                        rm terraform.zip
+                        chmod +x /home/node/.openclaw/bin/terraform
+                      else
+                        log "Terraform already installed, skipping"
+                      fi
 
                       log "Installing Terragrunt v0.59.0..."
-                      curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v0.59.0/terragrunt_linux_amd64 -o /home/node/.openclaw/bin/terragrunt
-                      chmod +x /home/node/.openclaw/bin/terragrunt
+                      if [ ! -f /home/node/.openclaw/bin/terragrunt ]; then
+                        curl -fsSL https://github.com/gruntwork-io/terragrunt/releases/download/v0.59.0/terragrunt_linux_amd64 -o /home/node/.openclaw/bin/terragrunt
+                        chmod +x /home/node/.openclaw/bin/terragrunt
+                      else
+                        log "Terragrunt already installed, skipping"
+                      fi
 
                       log "Installing AWS CLI v2..."
-                      curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                      unzip -o awscliv2.zip
-                      ./aws/install --install-dir /home/node/.openclaw/aws-cli --bin-dir /home/node/.openclaw/bin --update || true
-                      rm -rf aws awscliv2.zip
+                      if [ ! -f /home/node/.openclaw/bin/aws ]; then
+                        curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                        unzip -o awscliv2.zip
+                        ./aws/install --install-dir /home/node/.openclaw/aws-cli --bin-dir /home/node/.openclaw/bin || true
+                        rm -rf aws awscliv2.zip
+                      else
+                        log "AWS CLI already installed, skipping"
+                      fi
 
                       log "Installing GitHub CLI..."
-                      curl -fsSL https://github.com/cli/cli/releases/download/v2.50.0/gh_2.50.0_linux_amd64.tar.gz -o gh.tar.gz
-                      tar -xzf gh.tar.gz
-                      cp gh_*/bin/gh /home/node/.openclaw/bin/
-                      rm -rf gh_* gh.tar.gz
+                      if [ ! -f /home/node/.openclaw/bin/gh ]; then
+                        curl -fsSL https://github.com/cli/cli/releases/download/v2.50.0/gh_2.50.0_linux_amd64.tar.gz -o gh.tar.gz
+                        tar -xzf gh.tar.gz
+                        cp gh_*/bin/gh /home/node/.openclaw/bin/
+                        rm -rf gh_* gh.tar.gz
+                      else
+                        log "GitHub CLI already installed, skipping"
+                      fi
 
                       log "Setting up SSH keys for GitHub..."
                       mkdir -p ~/.ssh
