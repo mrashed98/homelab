@@ -473,7 +473,7 @@ spec:
             github-ssh:
               enabled: true
               type: secret
-              identifier: github-ssh
+              name: github-ssh
               advancedMounts:
                 main:
                   init-skills:
