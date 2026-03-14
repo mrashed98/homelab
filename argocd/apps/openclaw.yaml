@@ -139,7 +139,7 @@ spec:
                       log "Installing AWS CLI v2..."
                       curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                       unzip -o awscliv2.zip
-                      ./aws/install --install-dir /home/node/.openclaw/aws-cli --bin-dir /home/node/.openclaw/bin || true
+                      ./aws/install --install-dir /home/node/.openclaw/aws-cli --bin-dir /home/node/.openclaw/bin --update || true
                       rm -rf aws awscliv2.zip
 
                       log "Installing GitHub CLI..."
