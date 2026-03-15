@@ -183,6 +183,15 @@ spec:
                         cp /secrets/aws-credentials/config ~/.aws/config
                       fi
 
+                      log "Installing clawhub CLI..."
+                      if [ ! -f /home/node/.openclaw/bin/clawhub ]; then
+                        NPM_CONFIG_CACHE=/tmp/.npm npm install -g clawhub --prefix /home/node/.openclaw/npm-global
+                        ln -sf /home/node/.openclaw/npm-global/bin/clawhub /home/node/.openclaw/bin/clawhub
+                        log "clawhub installed"
+                      else
+                        log "clawhub already installed, skipping"
+                      fi
+
                       log "Installing ClawHub skills..."
                       for skill in weather; do
                         if [ -d "skills/$skill" ]; then
@@ -190,7 +199,7 @@ spec:
                           continue
                         fi
                         log "Installing skill: $skill"
-                        npx -y clawhub install "$skill" --no-input || log "WARNING: Failed to install skill: $skill"
+                        clawhub install "$skill" --no-input || log "WARNING: Failed to install skill: $skill"
                       done
 
                       log "Verifying installations..."
