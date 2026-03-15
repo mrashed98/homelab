@@ -234,7 +234,7 @@ spec:
                   args:
                     - gateway
                     - --bind
-                    - lan
+                    - all
                     - --port
                     - "18789"
                   envFrom:
