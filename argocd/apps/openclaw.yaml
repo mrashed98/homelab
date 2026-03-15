@@ -594,6 +594,7 @@ spec:
                         "botToken": "${TELEGRAM_BOT_TOKEN}",
                         "enabled": true,
                         "dmPolicy": "allowlist",
+                          "allowFrom": [521441334],
                         "network": {
                           "autoSelectFamily": false,
                           "dnsResultOrder": "ipv4first"
