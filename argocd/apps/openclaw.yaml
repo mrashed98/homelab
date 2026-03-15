@@ -583,17 +583,6 @@ spec:
                         "enabled": true,
                         "dmPolicy": "allowlist"
                       }
-                    },
-                    "plugins": {
-                      "entries": {
-                        "device": {
-                          "pair": {
-                            "config": {
-                              "publicUrl": "https://claw.voltafinancials.com"
-                            }
-                          }
-                        }
-                      }
                     }
                   }
 

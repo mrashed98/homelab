@@ -541,17 +541,6 @@ app-template:
                 "botToken": "${TELEGRAM_BOT_TOKEN}",
                 "enabled": true
               }
-            },
-            "plugins": {
-              "entries": {
-                "device": {
-                  "pair": {
-                    "config": {
-                      "publicUrl": "https://claw.voltafinancials.com"
-                    }
-                  }
-                }
-              }
             }
           }
 
