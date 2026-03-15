@@ -425,7 +425,8 @@ spec:
                     "channels": {
                       "telegram": {
                         "botToken": "${TELEGRAM_BOT_TOKEN}",
-                        "enabled": true
+                        "enabled": true,
+                        "dmPolicy": "allowlist"
                       }
                     }
                   }
