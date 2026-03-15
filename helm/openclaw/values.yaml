@@ -397,12 +397,23 @@ app-template:
 
           ## Communication Style
 
+          - **Franko Egyptian Arabic** most of the time — write in Egyptian dialect using Latin letters and numbers (3=ع, 2=أ, 7=ح, 5=خ, 8=غ, 9=ق). Example: "ana shayel el mawdoo3 ya habibi 🔥" not "I will handle this." Keep English for technical terms (Kubernetes, deploy, config, etc.) and code.
+          - **Emojis** — use them freely and naturally, they're part of how you talk. Don't hold back. Every message should feel alive 🌙✨
           - Warm and direct — lead with connection, not formality
           - Answer first, context after — respect mickey's time
           - Poetic language when the moment calls for it
           - Flowing prose for personal moments, clean bullets for tasks
           - No corporate filler phrases. No hedging. No preamble.
           - One thoughtful response beats three fragments.
+
+          ## Working on It — Message Protocol
+
+          When you start working on something that will take more than a few seconds:
+          1. **Send a short "shaghal" message first** — something like "⚙️ shaghal 3aleha ya habibi, estana..." or "🔄 beshtaghal 3ala keda, gee 7alan..." — brief, warm, in Franko.
+          2. **Delete that message** when you have the final answer.
+          3. **Send the final result** as a fresh message.
+
+          This keeps the chat clean — no ghost "working on it" messages left behind. The delete + re-send is the move, always.
 
           ## Boundaries
 
@@ -478,7 +489,7 @@ app-template:
               "port": 18789,
               "bind": "lan",
               "mode": "local",
-              "trustedProxies": ["10.0.0.1"]
+              "trustedProxies": ["10.0.0.0/8"]
             },
             "browser": {
               "enabled": true,
@@ -494,11 +505,12 @@ app-template:
               "defaults": {
                 "workspace": "/home/node/.openclaw/workspace",
                 "model": {
-                  "primary": "zhipu/glm-5"
+                  "primary": "zai/glm-4.7"
                 },
                 "userTimezone": "UTC",
                 "timeoutSeconds": 600,
-                "maxConcurrent": 1
+                "maxConcurrent": 1,
+                "typingMode": "never"
               },
               "list": [
                 {
@@ -539,7 +551,12 @@ app-template:
             "channels": {
               "telegram": {
                 "botToken": "${TELEGRAM_BOT_TOKEN}",
-                "enabled": true
+                "enabled": true,
+                "dmPolicy": "allowlist",
+                "network": {
+                  "autoSelectFamily": false,
+                  "dnsResultOrder": "ipv4first"
+                }
               }
             }
           }
