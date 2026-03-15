@@ -546,9 +546,7 @@ spec:
                       "defaults": {
                         "workspace": "/home/node/.openclaw/workspace",
                         "model": {
-                          "primary": "zai/glm-4.7",
-                          "fallback": "openai/gpt-4o-mini",
-                          "coding": "openai/codex"
+                          "primary": "zai/glm-4.7"
                         },
                         "userTimezone": "UTC",
                         "timeoutSeconds": 600,
