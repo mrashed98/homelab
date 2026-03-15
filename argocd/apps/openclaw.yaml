@@ -711,6 +711,46 @@ spec:
                   chromium:
                     - path: /tmp
 
+            home-config:
+              enabled: true
+              type: emptyDir
+              advancedMounts:
+                main:
+                  main:
+                    - path: /home/node/.config
+
+            home-local:
+              enabled: true
+              type: emptyDir
+              advancedMounts:
+                main:
+                  main:
+                    - path: /home/node/.local
+
+            home-cache:
+              enabled: true
+              type: emptyDir
+              advancedMounts:
+                main:
+                  main:
+                    - path: /home/node/.cache
+
+            home-ssh:
+              enabled: true
+              type: emptyDir
+              advancedMounts:
+                main:
+                  main:
+                    - path: /home/node/.ssh
+
+            home-aws:
+              enabled: true
+              type: emptyDir
+              advancedMounts:
+                main:
+                  main:
+                    - path: /home/node/.aws
+
           networkpolicies:
             main:
               enabled: true
