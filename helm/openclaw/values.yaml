@@ -476,6 +476,7 @@ app-template:
           {
             "gateway": {
               "port": 18789,
+              "bind": "lan",
               "mode": "local",
               "trustedProxies": ["10.0.0.1"]
             },
@@ -539,6 +540,17 @@ app-template:
               "telegram": {
                 "botToken": "${TELEGRAM_BOT_TOKEN}",
                 "enabled": true
+              }
+            },
+            "plugins": {
+              "entries": {
+                "device": {
+                  "pair": {
+                    "config": {
+                      "publicUrl": "https://claw.voltafinancials.com"
+                    }
+                  }
+                }
               }
             }
           }

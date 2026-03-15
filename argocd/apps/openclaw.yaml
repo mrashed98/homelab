@@ -514,6 +514,7 @@ spec:
                   {
                     "gateway": {
                       "port": 18789,
+                      "bind": "lan",
                       "mode": "local",
                       "trustedProxies": ["10.0.0.0/8"],
                       "controlUi": {
@@ -581,6 +582,17 @@ spec:
                         "botToken": "${TELEGRAM_BOT_TOKEN}",
                         "enabled": true,
                         "dmPolicy": "allowlist"
+                      }
+                    },
+                    "plugins": {
+                      "entries": {
+                        "device": {
+                          "pair": {
+                            "config": {
+                              "publicUrl": "https://claw.voltafinancials.com"
+                            }
+                          }
+                        }
                       }
                     }
                   }
