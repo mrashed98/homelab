@@ -10,10 +10,6 @@ spec:
     chart: plane-ce
     targetRevision: "1.4.1"
     helm:
-      valuesFrom:
-        - kind: Secret
-          name: plane-helm-values
-          optional: false
       values: |
         planeVersion: v1.2.0
 
@@ -46,6 +42,12 @@ spec:
           local_setup: true
           root_user: plane-minio
           storageClass: nfs-hdd
+
+        external_secrets:
+          app_env_existingSecret: plane-app-secret
+          doc_store_existingSecret: plane-app-secret
+          live_env_existingSecret: plane-app-secret
+          rabbitmq_existingSecret: plane-rabbitmq-secret
   destination:
     server: https://kubernetes.default.svc
     namespace: plane
