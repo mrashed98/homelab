@@ -10,16 +10,22 @@ spec:
     chart: plane-ce
     targetRevision: "1.4.1"
     helm:
-      valuesFrom:
-        - kind: Secret
-          name: plane-helm-values
-          optional: false
       values: |
-        planeVersion: stable
+        planeVersion: v1.4.1
+
+        # This tells the chart to look for your secret 'plane-helm-values'
+        # for database and environment configurations
+        external_secrets:
+          pgdb_existingSecret: "plane-helm-values"
+          app_env_existingSecret: "plane-helm-values"
+          rabbitmq_existingSecret: "plane-helm-values"
 
         ingress:
           enabled: true
           appHost: plane.voltafinancials.com
+          # These must be set or the ingress resource might be invalid
+          minioHost: plane-minio.voltafinancials.com
+          rabbitmqHost: plane-mq.voltafinancials.com
           ingressClass: traefik
           annotations:
             cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -52,9 +58,3 @@ spec:
       - CreateNamespace=true
       - PruneLast=true
       - ServerSideApply=true
-    retry:
-      limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m

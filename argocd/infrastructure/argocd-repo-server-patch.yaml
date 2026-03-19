@@ -1,0 +1,26 @@
+# Permanent fix for copyutil init container crash-loop after ungraceful shutdown.
+#
+# When the machine is powered off without draining, k3s may not clean up emptyDir
+# volumes. On restart, the copyutil init container fails because the symlink
+# /var/run/argocd/argocd-cmp-server already exists from the previous run.
+#
+# Using `ln -sf` (force) makes the operation idempotent: it overwrites any
+# pre-existing symlink instead of failing.
+#
+# This is picked up by infrastructure-stack (argocd/bootstrap/infra-link.yaml)
+# and applied via Server-Side Apply to the argocd namespace.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: copyutil
+          command:
+            - sh
+            - -c
+          args:
+            - /bin/cp --update=none /usr/local/bin/argocd /var/run/argocd/argocd && /bin/ln -sf /var/run/argocd/argocd /var/run/argocd/argocd-cmp-server
