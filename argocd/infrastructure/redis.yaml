@@ -27,6 +27,14 @@ spec:
             enabled: true
             storageClass: local-path
             size: 5Gi
+          # Pin to master — local-path PV is node-local and bound to k3s-master.
+          # Toleration allows scheduling despite the control-plane NoSchedule taint.
+          nodeSelector:
+            kubernetes.io/hostname: k3s-master
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
           resources:
             requests:
               memory: 64Mi
