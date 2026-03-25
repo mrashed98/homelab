@@ -25,3 +25,7 @@ kubeconfig*
 # --- Certificates ---
 # Keep the public CA cert, but ignore the private key
 *.key
+
+# --- Sync scripts ---
+scripts/.env
+scripts/logs/*.log
