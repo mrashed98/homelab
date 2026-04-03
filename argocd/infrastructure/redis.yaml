@@ -22,7 +22,7 @@ spec:
           # sensitive data in Redis.
           enabled: false
 
-        master:
+        primary:
           persistence:
             enabled: true
             storageClass: local-path
