@@ -36,11 +36,7 @@ spec:
           # Pin to master — local-path PV is node-local and bound to k3s-master.
           # Toleration allows scheduling despite the control-plane NoSchedule taint.
           nodeSelector:
-            kubernetes.io/hostname: k3s-master
-          tolerations:
-            - key: node-role.kubernetes.io/control-plane
-              operator: Exists
-              effect: NoSchedule
+            kubernetes.io/hostname: k3s-worker-2
 
           resources:
             requests:
