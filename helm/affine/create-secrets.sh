@@ -20,9 +20,9 @@ kubectl create secret generic affine-db-secret \
   --from-literal=password="$AFFINE_DB_PASSWORD" \
   --dry-run=client -o yaml \
   | kubeseal --format yaml \
-  > argocd/secrets/affine-db-sealed-secret.yaml
+  > helm/affine/templates/affine-db-sealed-secret.yaml
 
-echo "Written: argocd/secrets/affine-db-sealed-secret.yaml"
+echo "Written: helm/affine/templates/affine-db-sealed-secret.yaml"
 
 # 2. affine-postgres-admin-secret — postgres superuser (needed by the db-init Job)
 #    Same password as databases/postgres-admin-secret but sealed for the affine namespace.
@@ -31,8 +31,8 @@ kubectl create secret generic affine-postgres-admin-secret \
   --from-literal=postgres-password="$POSTGRES_ADMIN_PASSWORD" \
   --dry-run=client -o yaml \
   | kubeseal --format yaml \
-  > argocd/secrets/affine-postgres-admin-sealed-secret.yaml
+  > helm/affine/templates/affine-postgres-admin-sealed-secret.yaml
 
-echo "Written: argocd/secrets/affine-postgres-admin-sealed-secret.yaml"
+echo "Written: helm/affine/templates/affine-postgres-admin-sealed-secret.yaml"
 echo ""
 echo "Commit both files and push. ArgoCD will pick them up automatically."
