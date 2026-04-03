@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  labels:
-    io.kompose.service: affine-claim0
   name: affine-claim0
+  namespace: affine
+  labels:
+    app: affine
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
+  storageClassName: nfs-hdd
   resources:
     requests:
-      storage: 100Mi
+      storage: 10Gi

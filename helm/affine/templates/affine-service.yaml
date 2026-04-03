@@ -1,16 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -c
-    kompose.version: 1.38.0 (HEAD)
-  labels:
-    io.kompose.service: affine
   name: affine
+  namespace: affine
+  labels:
+    app: affine
 spec:
+  type: ClusterIP
   ports:
-    - name: "3010"
+    - name: http
       port: 3010
       targetPort: 3010
   selector:
-    io.kompose.service: affine
+    app: affine

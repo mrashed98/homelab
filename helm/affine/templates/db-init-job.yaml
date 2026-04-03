@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: affine-db-init
+  namespace: affine
+  labels:
+    app: affine
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: db-init
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              HOST="postgres.databases.svc.cluster.local"
+              export PGPASSWORD="$POSTGRES_ADMIN_PASSWORD"
+
+              echo "Checking/creating affine user..."
+              psql -h $HOST -U postgres -d postgres -tc \
+                "SELECT 1 FROM pg_roles WHERE rolname='affine'" | grep -q 1 || \
+                psql -h $HOST -U postgres -d postgres \
+                  -c "CREATE USER affine WITH PASSWORD '${AFFINE_DB_PASSWORD}'"
+
+              echo "Checking/creating affine database..."
+              psql -h $HOST -U postgres -d postgres -tc \
+                "SELECT 1 FROM pg_database WHERE datname='affine'" | grep -q 1 || \
+                psql -h $HOST -U postgres -d postgres \
+                  -c "CREATE DATABASE affine OWNER affine"
+
+              echo "Granting privileges..."
+              psql -h $HOST -U postgres -d postgres \
+                -c "GRANT ALL PRIVILEGES ON DATABASE affine TO affine"
+
+              echo "DB init complete."
+          env:
+            - name: POSTGRES_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: affine-postgres-admin-secret
+                  key: postgres-password
+            - name: AFFINE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: affine-db-secret
+                  key: password
+      restartPolicy: OnFailure
