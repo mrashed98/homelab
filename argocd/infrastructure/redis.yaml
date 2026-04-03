@@ -22,7 +22,7 @@ spec:
           # sensitive data in Redis.
           enabled: false
 
-        primary:
+        master:
           persistence:
             enabled: true
             storageClass: local-path
@@ -60,7 +60,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - PruneLast=true
-      - ServerSideApply=true
     retry:
       limit: 5
       backoff:
