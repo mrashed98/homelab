@@ -29,6 +29,7 @@ spec:
     namespace: xtreme-downloader
   syncPolicy:
     automated:
+      enabled: true
       prune: true
       selfHeal: true
     syncOptions:
