@@ -36,13 +36,13 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          # These were hardcoded here, which silently ignored values.yaml's
+          # env block -- editing SIGNUPS_ALLOWED there had no effect at all.
           env:
-            - name: DOMAIN
-              value: {{ printf "https://%s" .Values.ingress.host | quote }}
-            - name: SIGNUPS_ALLOWED
-              value: "true"
-            - name: WEBSOCKET_ENABLED
-              value: "true"
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
           volumeMounts:
             - name: data
               mountPath: /data
