@@ -21,7 +21,21 @@ spec:
     spec:
       initContainers:
         - name: migration
-          image: ghcr.io/toeverything/affine:0.27.4
+          # PINNED BACK to 0.26.3 -- do not bump without reading this.
+          #
+          # 0.27.4 adds migration 20260714000000_backfill_legacy_permission_and_
+          # subscription, which calls md5(). The Bitnami PostgreSQL image runs
+          # OpenSSL in FIPS mode (OPENSSL_FIPS=yes), where MD5 is unavailable:
+          #   ERROR: could not compute MD5 hash: unsupported  (SQLSTATE XX000)
+          # The migration fails, Prisma records it as failed (P3009), and every
+          # subsequent start refuses to migrate -- Affine never becomes ready.
+          #
+          # This is NOT caused by the postgres image pin: both the old (18.3.0)
+          # and new (18.6.0) digests have FIPS on. 0.27.4 is simply the first
+          # Affine release whose migrations need md5().
+          #
+          # To move to 0.27.x, postgres has to stop running in FIPS mode first.
+          image: ghcr.io/toeverything/affine:0.26.3
           command: ["sh", "-c", "node ./scripts/self-host-predeploy.js"]
           env:
             - name: AFFINE_DB_PASSWORD
@@ -37,7 +51,7 @@ spec:
               value: "false"
       containers:
         - name: affine-server
-          image: ghcr.io/toeverything/affine:0.27.4
+          image: ghcr.io/toeverything/affine:0.26.3
           ports:
             - containerPort: 3010
               protocol: TCP
