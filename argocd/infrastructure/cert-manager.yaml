@@ -8,22 +8,25 @@ spec:
   source:
     repoURL: https://charts.jetstack.io
     chart: cert-manager
-    targetRevision: v1.14.4
+    targetRevision: v1.21.1
     helm:
       values: |
         crds:
           enabled: true
-        installCRDs: true
         replicaCount: 1
+        # NOTE: chart >=1.15 types extraObjects as a list of *strings*
+        # (templated YAML), not a list of maps. Keep the "- |" block scalars.
         extraObjects:
-          - apiVersion: cert-manager.io/v1
+          - |
+            apiVersion: cert-manager.io/v1
             kind: ClusterIssuer
             metadata:
               name: homelab-ca-issuer
             spec:
               ca:
                 secretName: homelab-ca-secret
-          - apiVersion: cert-manager.io/v1
+          - |
+            apiVersion: cert-manager.io/v1
             kind: ClusterIssuer
             metadata:
               name: letsencrypt-prod

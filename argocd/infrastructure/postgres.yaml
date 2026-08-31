@@ -8,10 +8,18 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: postgresql
-    targetRevision: "18.4.0"   # PostgreSQL 17 — pin chart version for reproducibility
+    targetRevision: "18.8.13"   # PostgreSQL 18.6.0 — pin chart version for reproducibility
     helm:
       values: |
         fullnameOverride: postgres
+
+        # Bitnami retired versioned tags on Docker Hub (Aug 2025); only ":latest"
+        # is published now. A rolling tag on a database is a data-loss risk: when
+        # upstream rolls to PG19 the pod will refuse to start on this PG18 data
+        # dir. Pin by digest and bump deliberately after checking the major.
+        image:
+          tag: latest
+          digest: "sha256:40a261ed77f3b8dc65eeeec98bb79c4d3ef3410d7e2af7cfcf3785a6af00e4c5"  # 18.6.0
 
         auth:
           # SealedSecret (see databases-sealed-secret.yaml) provides the superuser password.

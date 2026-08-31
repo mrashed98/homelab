@@ -8,10 +8,15 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: redis
-    targetRevision: "*"   # Always use latest stable — avoids stale image tags
+    targetRevision: "28.0.12"   # Redis 8.10.1 — pinned; "*" made rollbacks impossible
     helm:
       values: |
         fullnameOverride: redis
+
+        # See postgres.yaml — Bitnami only publishes ":latest" now. Pinned by digest.
+        image:
+          tag: latest
+          digest: "sha256:d75bda00b778ad5e03a639ec36e00f6665a5d7e0f35a6250be5b103fb2117275"  # 8.10.1
 
         # Standalone is sufficient for homelab (no sentinel/replication overhead)
         architecture: standalone

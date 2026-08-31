@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://grafana.github.io/helm-charts
     chart: loki
-    targetRevision: "6.x"
+    targetRevision: "6.55.0"
     helm:
       values: |
         loki:
@@ -17,6 +17,16 @@ spec:
             replication_factor: 1
           storage:
             type: filesystem
+          # 1 week of logs. Loki does NOT delete anything unless the compactor
+          # runs with retention_enabled — retention_period alone is inert.
+          limits_config:
+            retention_period: 168h
+          compactor:
+            working_directory: /var/loki/compactor
+            delete_request_store: filesystem
+            retention_enabled: true
+            retention_delete_delay: 2h
+            compaction_interval: 10m
           schemaConfig:
             configs:
               - from: "2024-01-01"

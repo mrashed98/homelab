@@ -1,0 +1,245 @@
+# Homelab alerting additions.
+#
+# kube-prometheus-stack's defaultRules already cover pod readiness, crashloops
+# and replica mismatch. This file adds what they did NOT cover, and what
+# actually bit us:
+#
+#   - disk / PVC capacity      no coverage at all before this
+#   - pods that can NEVER schedule  Grafana sat Pending for 144 days; the
+#                              generic KubePodNotReady warning gave no hint why
+#   - eviction storms          xtreme-downloader lost ~28 pods to node pressure
+#   - ArgoCD app health        sealed-secrets synced "Unknown" for months
+#                              unnoticed after its chart repo started 404ing
+#   - TLS certificate expiry   every ingress depends on cert-manager
+#
+# The two ServiceMonitors exist because cert-manager and ArgoCD expose metrics
+# that nothing was scraping. Prometheus selects serviceMonitors on
+# release=monitoring across all namespaces.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/name: cert-manager
+  endpoints:
+    - port: tcp-prometheus-servicemonitor
+      interval: 60s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd
+  namespace: argocd
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - argocd-application-controller
+          - argocd-server
+  endpoints:
+    - port: metrics
+      interval: 60s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: homelab-rules
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    # ---------------------------------------------------------------- storage
+    - name: homelab.storage
+      rules:
+        - alert: NodeDiskSpaceLow
+          expr: |
+            100 * node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"}
+              / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"} < 20
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk {{ $labels.mountpoint }} on {{ $labels.instance }} below 20% free"
+            description: "{{ printf \"%.1f\" $value }}% free on {{ $labels.device }} ({{ $labels.mountpoint }})."
+
+        - alert: NodeDiskSpaceCritical
+          expr: |
+            100 * node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"}
+              / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"} < 10
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Disk {{ $labels.mountpoint }} on {{ $labels.instance }} below 10% free"
+            description: "{{ printf \"%.1f\" $value }}% free. Kubelet starts evicting pods at the disk-pressure threshold."
+
+        - alert: NodeDiskWillFillIn24h
+          expr: |
+            predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"}[6h], 24 * 3600) < 0
+            and
+            100 * node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"}
+              / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay|fuse.*"} < 40
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.mountpoint }} on {{ $labels.instance }} fills within 24h at current rate"
+
+        - alert: PersistentVolumeSpaceLow
+          expr: |
+            100 * kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 20
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} below 20% free"
+            description: "{{ printf \"%.1f\" $value }}% free."
+
+        - alert: PersistentVolumeSpaceCritical
+          expr: |
+            100 * kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 10
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} below 10% free"
+
+        - alert: PersistentVolumeWillFillIn24h
+          expr: |
+            predict_linear(kubelet_volume_stats_available_bytes[6h], 24 * 3600) < 0
+            and
+            100 * kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 40
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} fills within 24h"
+
+    # ------------------------------------------------------------- scheduling
+    - name: homelab.workloads
+      rules:
+        # The Grafana case: PV node-affinity pinned it to a tainted node and the
+        # pod had no toleration, so it could never schedule. Never self-heals.
+        - alert: PodUnschedulable
+          expr: kube_pod_status_unschedulable == 1
+          for: 20m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} cannot be scheduled"
+            description: "Unschedulable for >20m. Usually a taint/toleration or PV node-affinity mismatch; it will not resolve on its own."
+
+        # Louder than KubePodNotReady (15m warning) so multi-day breakage does
+        # not sit in the same bucket as a slow rollout.
+        - alert: PodNotReadyForADay
+          # "unless" drops Completed/Evicted pods, which are permanently
+          # not-ready by definition and would otherwise bury the real signal.
+          expr: |
+            kube_pod_status_ready{condition="false"} == 1
+            unless on (namespace, pod) kube_pod_status_phase{phase=~"Succeeded|Failed"} == 1
+          for: 24h
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} not ready for 24h"
+
+        - alert: PodEvictionStorm
+          expr: count by (namespace) (kube_pod_status_reason{reason="Evicted"} == 1) > 5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $value }} evicted pods in {{ $labels.namespace }}"
+            description: "Node pressure evicted pods in bulk. Check disk/memory, then delete the Failed pods."
+
+        - alert: ContainerStuckWaiting
+          expr: |
+            kube_pod_container_status_waiting_reason{reason!~"ContainerCreating|PodInitializing"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} container waiting: {{ $labels.reason }}"
+
+    # ------------------------------------------------------------------ nodes
+    - name: homelab.nodes
+      rules:
+        - alert: NodeMemoryHigh
+          expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 90
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} memory above 90%"
+            description: "{{ printf \"%.1f\" $value }}% used. This cluster is memory-bound; evictions follow."
+
+        - alert: NodeUnderPressure
+          expr: |
+            kube_node_status_condition{condition=~"MemoryPressure|DiskPressure|PIDPressure",status="true"} == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node {{ $labels.node }} reports {{ $labels.condition }}"
+
+    # ----------------------------------------------------------------- gitops
+    - name: homelab.argocd
+      rules:
+        # sealed-secrets sat at sync_status=Unknown for months because its chart
+        # repo URL started returning 404. Nothing surfaced it.
+        - alert: ArgoCDAppNotSynced
+          expr: argocd_app_info{sync_status!="Synced"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "ArgoCD app {{ $labels.name }} is {{ $labels.sync_status }}"
+            description: "Unknown usually means the chart repo or revision is unreachable."
+
+        - alert: ArgoCDAppUnhealthy
+          expr: argocd_app_info{health_status!~"Healthy|Progressing"} == 1
+          for: 30m
+          labels:
+            severity: critical
+          annotations:
+            summary: "ArgoCD app {{ $labels.name }} health is {{ $labels.health_status }}"
+
+    # ------------------------------------------------------------------- tls
+    - name: homelab.certificates
+      rules:
+        - alert: CertificateExpiringSoon
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 21
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in {{ printf \"%.0f\" $value }}d"
+
+        - alert: CertificateExpiringCritical
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 7
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in {{ printf \"%.0f\" $value }}d"
+
+        - alert: CertificateNotReady
+          expr: certmanager_certificate_ready_status{condition="False"} == 1
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} is not Ready"
