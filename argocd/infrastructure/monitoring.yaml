@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: "82.2.0"
+    targetRevision: "88.6.2"
     helm:
       values: |
         fullnameOverride: prometheus
@@ -28,7 +28,14 @@ spec:
                   - prometheus.voltafinancials.com
                 secretName: prometheus-tls
           prometheusSpec:
-            retention: 15d
+            # 1 week of metrics. retentionSize is the important half: all three
+            # nodes have only a ~20GB root disk and local-path enforces no quota,
+            # so without a hard cap the TSDB grows until the kubelet hits disk
+            # pressure and evicts pods (this is what happened on k3s-worker-2 —
+            # 42Gi of local-path claims on a 20.6GB disk, TSDB alone was 9GB).
+            # Whichever limit trips first wins.
+            retention: 7d
+            retentionSize: 6GB
             resources:
               requests:
                 memory: 512Mi
@@ -43,6 +50,9 @@ spec:
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
+                      # local-path is a directory on the node root disk (~20.6GB
+                      # total), so this request is advisory, not enforced.
+                      # retentionSize above is the real ceiling.
                       storage: 20Gi
 
         grafana:
@@ -73,6 +83,16 @@ spec:
             enabled: true
             storageClassName: local-path
             size: 10Gi
+          # The local-path PV for Grafana was provisioned on k3s-master, which
+          # carries the control-plane NoSchedule taint. Without this toleration
+          # the pod is permanently Unschedulable ("didn't match PersistentVolume's
+          # node affinity") — it sat Pending for 144 days. Same pattern redis uses.
+          nodeSelector:
+            kubernetes.io/hostname: k3s-master
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
           resources:
             requests:
               memory: 200Mi

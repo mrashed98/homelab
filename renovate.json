@@ -1,0 +1,69 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+
+  "argocd": {
+    "managerFilePatterns": ["/^argocd/.+\\.yaml$/"]
+  },
+  "helm-values": {
+    "managerFilePatterns": ["/^helm/.+/values\\.yaml$/"]
+  },
+
+  "customManagers": [
+    {
+      "description": "Affine pins its image directly in the deployment template",
+      "customType": "regex",
+      "managerFilePatterns": ["/^helm/affine/templates/.+\\.yaml$/"],
+      "matchStrings": ["image:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s\"]+)"],
+      "datasourceTemplate": "docker"
+    }
+  ],
+
+  "packageRules": [
+    {
+      "description": "Majors get their own PR and a loud label - they need release notes read",
+      "matchUpdateTypes": ["major"],
+      "labels": ["upgrade/major", "needs-review"],
+      "separateMajorMinor": true,
+      "automerge": false
+    },
+    {
+      "description": "Group the monitoring stack so Prometheus/Loki/Grafana move together",
+      "matchPackageNames": [
+        "kube-prometheus-stack",
+        "loki",
+        "promtail",
+        "grafana",
+        "**/grafana/**"
+      ],
+      "groupName": "monitoring stack"
+    },
+    {
+      "description": "Our own images are pushed by CI on every merge - Renovate would just churn",
+      "matchPackageNames": [
+        "ghcr.io/mrashed98/**"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Bitnami only publishes :latest now, so these are digest pins. A digest bump can cross a PostgreSQL major and break the data dir - never automerge, always read the tag first.",
+      "matchPackageNames": ["**/bitnami/postgresql", "**/bitnami/redis"],
+      "labels": ["upgrade/database", "needs-review"],
+      "automerge": false,
+      "schedule": ["before 6am on the first day of the month"]
+    },
+    {
+      "description": "Patch bumps on leaf apps are safe to batch",
+      "matchUpdateTypes": ["patch"],
+      "groupName": "patch updates"
+    }
+  ],
+
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  }
+}
