@@ -1,6 +1,6 @@
 image:
   repository: vaultwarden/server
-  tag: alpine
+  tag: 1.37.2-alpine
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -15,7 +15,10 @@ ingress:
 
 env:
   DOMAIN: https://vault.voltafinancials.com
-  SIGNUPS_ALLOWED: "true"
+  # Open registration on an internet-reachable password manager lets anyone
+  # who finds the host create an account. Invite users from the admin page
+  # instead (set ADMIN_TOKEN), or flip this back briefly to onboard someone.
+  SIGNUPS_ALLOWED: "false"
   WEBSOCKET_ENABLED: "true"
 
 resources:
