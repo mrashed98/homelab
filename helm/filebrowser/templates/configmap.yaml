@@ -19,6 +19,13 @@ data:
       {{- if and (kindIs "map" $share) $share.enabled }}
         - path: /srv/{{ $name }}
           name: {{ $name }}
+          config:
+            # Without these a new user is created with scopes: [] and the UI
+            # is simply empty -- it logs in fine, lists no sources, and gives
+            # no hint why. defaultEnabled grants the source to users by
+            # default; defaultUserScope is the path within it they land on.
+            defaultEnabled: true
+            defaultUserScope: "/"
       {{- end }}
       {{- end }}
     auth:
