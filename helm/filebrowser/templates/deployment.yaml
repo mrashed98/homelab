@@ -46,14 +46,23 @@ spec:
             - -c
             - |
               set -e
-              if [ -f /data/database.db ]; then
-                echo "database already present -- leaving users alone"
+              # Guard on a sentinel, NOT on database.db. `set` creates the
+              # database as a side effect before it updates the user, so if it
+              # is interrupted in between (this init container was retried once
+              # on the first deploy and hit exactly that), a database-file guard
+              # sees the db, skips, and locks in an admin whose password was
+              # never applied -- with no way to notice except a failing login.
+              # The sentinel is only written after `set` exits 0.
+              if [ -f /data/.admin-initialised ]; then
+                echo "admin already initialised -- leaving users alone"
                 exit 0
               fi
-              echo "fresh volume -- creating database and admin user"
+              echo "initialising database and admin user"
               /home/filebrowser/filebrowser set \
                 -u "{{ .Values.adminUsername }},$FB_ADMIN_PASSWORD" -a \
                 -c /config/config.yaml
+              touch /data/.admin-initialised
+              echo "admin initialised"
           env:
             - name: FB_ADMIN_PASSWORD
               valueFrom:
