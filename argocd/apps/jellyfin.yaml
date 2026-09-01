@@ -37,6 +37,33 @@ spec:
             existingClaim: jellyfin-media
         service:
           type: ClusterIP
+
+        # Kubernetes defaults these to timeoutSeconds=1 / failureThreshold=3,
+        # so Jellyfin has 1s to answer /health, 3 strikes in 30s and it is
+        # SIGKILLed (exit 137, "failed liveness probe"). During a library scan
+        # it runs ffprobe over NFS per file and routinely blocks longer than
+        # that, so every scan was being killed partway through -- 9 restarts in
+        # 22h, and newly downloaded episodes never finished indexing. Memory was
+        # never the issue (189Mi against a 2Gi limit).
+        #
+        # Now it takes ~3 minutes of genuine unresponsiveness to trigger a
+        # restart, which still catches a real hang but survives an NFS stall.
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 6
         resources:
           requests:
             memory: 256Mi
