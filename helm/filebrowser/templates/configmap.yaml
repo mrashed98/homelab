@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    server:
+      port: 80
+      baseURL: "/"
+      database: /data/database.db
+      # Thumbnail cache. Quantum warns below 20GB free, which is why this lives
+      # on the NFS PVC and not an emptyDir on a ~20GB node root disk.
+      cacheDir: /data/cache
+      logging:
+        - levels: "info|warning|error"
+      sources:
+      {{- range $name, $share := .Values.shares }}
+      {{- if and (kindIs "map" $share) $share.enabled }}
+        - path: /srv/{{ $name }}
+          name: {{ $name }}
+      {{- end }}
+      {{- end }}
+    auth:
+      methods:
+        password:
+          enabled: true
+          minLength: 8
+          # No self-registration: this is reachable from the internet.
+          signup: false
+        passkey:
+          enabled: false
+    userDefaults:
+      listing:
+        showSelectMultiple: true   # needed to pick several files for one zip
+        quickDownload: true
+        viewMode: "normal"
+      preview:
+        image: true
+        video: true
+        folder: true
+      ui:
+        darkMode: true

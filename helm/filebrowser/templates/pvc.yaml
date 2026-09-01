@@ -1,0 +1,50 @@
+{{- range $name, $share := .Values.shares }}
+{{- if and (kindIs "map" $share) $share.enabled }}
+---
+# Second PV over an export jellyfin/transmission already use. Safe because the
+# export is ReadWriteMany and this claim is consumed read-only; Retain means
+# deleting this chart never touches the media itself.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: filebrowser-{{ $name }}
+spec:
+  capacity:
+    storage: {{ $share.capacity }}
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: {{ $share.server }}
+    path: {{ $share.path }}
+  storageClassName: manual
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: filebrowser-{{ $name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ $share.capacity }}
+  volumeName: filebrowser-{{ $name }}
+  storageClassName: manual
+{{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.data.size }}
+  storageClassName: {{ .Values.data.storageClass }}

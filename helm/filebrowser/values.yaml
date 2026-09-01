@@ -1,0 +1,66 @@
+# File Browser Quantum -- the maintained fork of filebrowser/filebrowser, which
+# was archived on 2026-09-01 with an unfixed high-severity advisory (upload
+# cleanup recursively deleting directories). Same UI, still getting fixes.
+image:
+  repository: ghcr.io/gtsteffaniak/filebrowser
+  # NB: the image tag has no "v" prefix even though the GitHub release does.
+  tag: 1.5.5-stable
+  pullPolicy: IfNotPresent
+
+ingress:
+  host: files.voltafinancials.com
+
+# The point of this app is to LOOK at media, not change it. Both shares are
+# mounted read-only at the pod level -- that is the real guarantee, and it holds
+# whatever the app itself thinks it is allowed to do. Flip to false if you ever
+# want to tidy files from the browser.
+shares:
+  readOnly: true
+  media:
+    enabled: true
+    server: 192.168.68.100
+    path: /mnt/pve/BigData/k3s-shares/media
+    capacity: 500Gi
+  transmission:
+    enabled: true
+    server: 192.168.68.100
+    path: /mnt/pve/BigData/k3s-shares/transmission
+    capacity: 500Gi
+
+# Holds the SQLite db and the thumbnail cache. On NFS rather than local-path
+# because every node root disk is ~20GB and already tight; the NFS export has
+# over a terabyte free, and the cache grows with the size of the library.
+data:
+  storageClass: nfs-hdd
+  size: 10Gi
+
+# Existing secret with key "password" -- the initial admin password.
+# Sealed into admin-sealed-secret.yaml; change it in the UI whenever you like,
+# the init step only runs while the database does not yet exist.
+adminPasswordSecret: filebrowser-admin
+adminUsername: admin
+
+# Image is built to run as uid/gid 1000; fsGroup lets it write to the NFS PVC.
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 50m
+  limits:
+    memory: 512Mi
+    cpu: 1000m
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - worker

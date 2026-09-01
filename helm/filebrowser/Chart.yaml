@@ -1,0 +1,6 @@
+apiVersion: v2
+name: filebrowser
+description: Web file manager over the media and download shares -- browse, preview, and bulk-download as zip
+type: application
+version: 0.1.0
+appVersion: "2.63.23"

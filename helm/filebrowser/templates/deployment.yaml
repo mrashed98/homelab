@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: 1
+  strategy:
+    # SQLite is single-writer and the PVC is RWO -- never run two at once.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+      annotations:
+        # Restart on config change so edits actually take effect.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        # Creates the database and sets the admin password, but ONLY on a fresh
+        # volume -- otherwise a restart would clobber a password you changed in
+        # the UI, and any users you added.
+        #
+        # Two things this got wrong the first time, both verified against the
+        # real image: the subcommand must come BEFORE -c (usage is
+        # `filebrowser <command> [options]`; with -c first the whole `set` is
+        # silently ignored and it just boots a server), and without this step
+        # Quantum logs "Resetting admin user to default username and password"
+        # on database creation, which would leave admin/admin exposed.
+        - name: init-admin
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              if [ -f /data/database.db ]; then
+                echo "database already present -- leaving users alone"
+                exit 0
+              fi
+              echo "fresh volume -- creating database and admin user"
+              /home/filebrowser/filebrowser set \
+                -u "{{ .Values.adminUsername }},$FB_ADMIN_PASSWORD" -a \
+                -c /config/config.yaml
+          env:
+            - name: FB_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.adminPasswordSecret }}
+                  key: password
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+      containers:
+        - name: {{ .Release.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["-c", "/config/config.yaml"]
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+            {{- range $name, $share := .Values.shares }}
+            {{- if and (kindIs "map" $share) $share.enabled }}
+            - name: {{ $name }}
+              mountPath: /srv/{{ $name }}
+              readOnly: {{ $.Values.shares.readOnly }}
+            {{- end }}
+            {{- end }}
+          # Generous timeouts on purpose: indexing a large library over NFS can
+          # block the HTTP thread well past a second, and Kubernetes' 1s default
+          # is exactly what was killing Jellyfin mid-scan.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-config
+        {{- range $name, $share := .Values.shares }}
+        {{- if and (kindIs "map" $share) $share.enabled }}
+        - name: {{ $name }}
+          persistentVolumeClaim:
+            claimName: filebrowser-{{ $name }}
+            readOnly: {{ $.Values.shares.readOnly }}
+        {{- end }}
+        {{- end }}
