@@ -15,16 +15,41 @@ ingress:
 # whatever the app itself thinks it is allowed to do. Flip to false if you ever
 # want to tidy files from the browser.
 shares:
-  readOnly: true
+  # readOnly is per-share now. Media stays read-only on purpose: this exists to
+  # check that downloads landed, not to reorganise a 500GB library.
+  #
+  # Deliberately NOT exposing /mnt/pve/BigData or its k3s-shares root as
+  # writable. BigData/images holds the VM disks for all three k3s nodes, and
+  # k3s-shares holds Vaultwarden's vault plus every Postgres PVC -- one stray
+  # delete there takes out the cluster. "files" is a dedicated general-purpose
+  # area instead, and k3s-shares is mounted read-only for visibility.
   media:
     enabled: true
+    readOnly: true
     server: 192.168.68.100
     path: /mnt/pve/BigData/k3s-shares/media
     capacity: 500Gi
   transmission:
     enabled: true
+    readOnly: true
     server: 192.168.68.100
     path: /mnt/pve/BigData/k3s-shares/transmission
+    capacity: 500Gi
+  # General-purpose writable space -- private files, and a path Nextcloud or
+  # anything else can mount later. 1.4TB free on the underlying disk.
+  files:
+    enabled: true
+    readOnly: false
+    server: 192.168.68.100
+    path: /mnt/pve/BigData/files
+    capacity: 500Gi
+  # Read-only window onto every app's PVC data, for investigating without
+  # being able to destroy anything.
+  appdata:
+    enabled: true
+    readOnly: true
+    server: 192.168.68.100
+    path: /mnt/pve/BigData/k3s-shares
     capacity: 500Gi
 
 # Holds the SQLite db and the thumbnail cache. On NFS rather than local-path

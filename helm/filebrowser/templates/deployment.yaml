@@ -92,7 +92,7 @@ spec:
             {{- if and (kindIs "map" $share) $share.enabled }}
             - name: {{ $name }}
               mountPath: /srv/{{ $name }}
-              readOnly: {{ $.Values.shares.readOnly }}
+              readOnly: {{ $share.readOnly }}
             {{- end }}
             {{- end }}
           # Generous timeouts on purpose: indexing a large library over NFS can
@@ -128,6 +128,6 @@ spec:
         - name: {{ $name }}
           persistentVolumeClaim:
             claimName: filebrowser-{{ $name }}
-            readOnly: {{ $.Values.shares.readOnly }}
+            readOnly: {{ $share.readOnly }}
         {{- end }}
         {{- end }}
