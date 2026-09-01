@@ -41,7 +41,12 @@ shares:
     enabled: true
     readOnly: false
     server: 192.168.68.100
-    path: /mnt/pve/BigData/files
+    # Must live INSIDE the exported tree. /etc/exports on the Proxmox host only
+    # exports /mnt/pve/BigData/k3s-shares, so a sibling directory fails to mount
+    # with "reason given by server: No such file or directory" and the pod hangs
+    # in PodInitializing. Keeping it here avoids touching NFS server config, and
+    # Nextcloud can mount the same export later.
+    path: /mnt/pve/BigData/k3s-shares/files
     capacity: 500Gi
   # Read-only window onto every app's PVC data, for investigating without
   # being able to destroy anything.
