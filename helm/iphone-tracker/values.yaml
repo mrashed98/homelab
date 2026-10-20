@@ -1,0 +1,18 @@
+image:
+  repository: python
+  tag: 3.13-alpine
+  pullPolicy: IfNotPresent
+
+# Last path segment of the product URL on eshop.orange.eg
+seName: iphone-18-pro-max
+intervalSeconds: 30
+# Alertmanager already routes everything to the Homealert Telegram chat
+alertmanagerUrl: http://prometheus-alertmanager.monitoring:9093
+
+resources:
+  requests:
+    memory: 24Mi
+    cpu: 10m
+  limits:
+    memory: 64Mi
+    cpu: 100m
