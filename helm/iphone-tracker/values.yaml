@@ -10,6 +10,8 @@ intervalSeconds: 30
 shopifyProducts:
   - https://tradelinestores.com/products/iphone-18-pro-mjxn4af-a  # Pro Max 256GB Black
   - https://tradelinestores.com/products/iphone-18-pro-mjxq4af-a  # Pro Max 256GB Burgundy
+  - https://tradelinestores.com/products/iphone-18-pro-mjxr4af-a  # Pro Max 256GB Glacier
+  - https://tradelinestores.com/products/iphone-18-pro-mjxp4af-a  # Pro Max 256GB Silver
 # Alertmanager already routes everything to the Homealert Telegram chat
 alertmanagerUrl: http://prometheus-alertmanager.monitoring:9093
 
