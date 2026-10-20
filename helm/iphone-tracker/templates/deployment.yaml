@@ -30,6 +30,8 @@ spec:
           env:
             - name: SE_NAME
               value: {{ .Values.seName | quote }}
+            - name: SHOPIFY_PRODUCTS
+              value: {{ join "," .Values.shopifyProducts | quote }}
             - name: INTERVAL_SECONDS
               value: {{ .Values.intervalSeconds | quote }}
             - name: ALERTMANAGER_URL

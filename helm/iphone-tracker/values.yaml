@@ -6,6 +6,10 @@ image:
 # Last path segment of the product URL on eshop.orange.eg
 seName: iphone-18-pro-max
 intervalSeconds: 30
+# Shopify product pages to watch (one URL per colour/storage on TradeLine)
+shopifyProducts:
+  - https://tradelinestores.com/products/iphone-18-pro-mjxn4af-a  # Pro Max 256GB Black
+  - https://tradelinestores.com/products/iphone-18-pro-mjxq4af-a  # Pro Max 256GB Burgundy
 # Alertmanager already routes everything to the Homealert Telegram chat
 alertmanagerUrl: http://prometheus-alertmanager.monitoring:9093
 
