@@ -1,0 +1,6 @@
+apiVersion: v2
+name: iphone-tracker
+description: Polls Orange EG eShop every 30s and alerts Homealert (via Alertmanager) when the iPhone 18 Pro Max is in stock
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
