@@ -97,7 +97,8 @@ def main():
             except Exception as e:  # never die on a bad poll; the API or network will hiccup
                 if isinstance(e, urllib.error.HTTPError) and e.code == 429:
                     retry = e.headers.get("Retry-After", "")
-                    cooldown[store] = time.monotonic() + (int(retry) if retry.isdigit() else 300)
+                    # Shopify says 60s, but retrying that soon keeps the per-IP bucket full; 5 min floor
+                    cooldown[store] = time.monotonic() + max(int(retry) if retry.isdigit() else 0, 300)
                 fails[url] = fails.get(url, 0) + 1
                 print(f"{datetime.now():%H:%M:%S} {store} poll failed ({fails[url]}): {e!r}", flush=True)
                 if fails[url] >= FAIL_ALERT_AFTER:
