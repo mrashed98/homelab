@@ -15,9 +15,15 @@ PAGE = f"https://eshop.orange.eg/ar/smart-phones/p/{SE_NAME}"
 SHOPIFY_PRODUCTS = [u.strip() for u in os.environ.get("SHOPIFY_PRODUCTS", "").split(",") if u.strip()]
 ALERTMANAGER = os.environ.get("ALERTMANAGER_URL", "http://prometheus-alertmanager.monitoring:9093")
 INTERVAL = int(os.environ.get("INTERVAL_SECONDS", "30"))
-FAIL_ALERT_AFTER = 20  # consecutive failed polls of one URL before alerting that the tracker is blind
-# Shopify 429s when every product is fetched each poll, so one product per poll, round-robin
-ROTATION = max(len(SHOPIFY_PRODUCTS), 1)
+# TradeLine (Shopify) rate-limits our IP hard and 429s count against the limit, so it gets its own slow
+# schedule: one product per SHOPIFY_INTERVAL (round-robin), doubling backoff on 429 up to an hour.
+SHOPIFY_INTERVAL = int(os.environ.get("SHOPIFY_INTERVAL_SECONDS", "300"))
+BACKOFF_MIN, BACKOFF_MAX = 600, 3600
+# Alert that the tracker is blind once a store has had no successful read for this long
+STALE = {"eshop.orange.eg": INTERVAL * 20}
+SHOPIFY_STALE = 3 * 3600
+# In-stock alerts are re-posted every poll of that product; they must outlive the gap or they flap on Telegram
+SHOPIFY_ALERT_TTL = SHOPIFY_INTERVAL * max(len(SHOPIFY_PRODUCTS), 1) * 2 + BACKOFF_MAX
 NAMESPACE = os.environ.get("POD_NAMESPACE", "iphone-tracker")
 
 
@@ -52,25 +58,40 @@ def shopify_items(d, url):
     return out
 
 
-def alert(name, severity, summary, description, extra_labels=None):
+def alert(name, severity, summary, description, extra_labels=None, ttl=None):
     # endsAt in the near future: keeps firing while we re-post every poll, auto-resolves once we stop
-    # must outlive a full rotation, or an in-stock alert resolves and re-fires between its polls
-    ends = (datetime.now(timezone.utc) + timedelta(seconds=max(INTERVAL * ROTATION * 2, 120))).isoformat()
+    ends = (datetime.now(timezone.utc) + timedelta(seconds=ttl or max(INTERVAL * 4, 120))).isoformat()
     return {"labels": {"alertname": name, "severity": severity, "namespace": NAMESPACE, **(extra_labels or {})},
             "annotations": {"summary": summary, "description": description}, "endsAt": ends}
 
 
-def build_alerts(store, items):
+def build_alerts(store, items, ttl=None):
     return [alert("iPhoneInStock", "critical", summary, f"Price: EGP {price:,.0f}\n{url}",
-                  {"store": store, "variant": variant})
+                  {"store": store, "variant": variant}, ttl)
             for variant, summary, price, url in items]
 
 
-def sources(n):
-    """-> [(store, url for errors, fetch-and-parse fn)] for poll number n"""
-    yield "eshop.orange.eg", API, lambda: orange_items(get_json(API, **{"Accept-Language": "en-US"})["Data"])
-    for u in SHOPIFY_PRODUCTS[n % ROTATION:][:1]:
-        yield urlparse(u).hostname, u, lambda u=u: shopify_items(get_json(u.rstrip("/") + ".js"), u)
+class Shopify:
+    """Round-robin over SHOPIFY_PRODUCTS, one request when due, backing off on 429."""
+
+    def __init__(self, urls):
+        self.urls, self.i, self.due, self.backoff = urls, 0, 0.0, 0
+
+    def poll(self, now):
+        """-> (store, url, fetch-and-parse fn) when a request is due, else None"""
+        if not self.urls or now < self.due:
+            return None
+        u = self.urls[self.i % len(self.urls)]
+        return urlparse(u).hostname, u, lambda: shopify_items(get_json(u.rstrip("/") + ".js"), u)
+
+    def done(self, now, err=None):
+        if isinstance(err, urllib.error.HTTPError) and err.code == 429:
+            self.backoff = min(max(self.backoff * 2, BACKOFF_MIN), BACKOFF_MAX)
+            self.due = now + self.backoff  # retry the same product
+        else:
+            self.backoff = 0
+            self.i += err is None  # move on only after a good read, so no colour gets skipped
+            self.due = now + SHOPIFY_INTERVAL
 
 
 def post(alerts):
@@ -81,29 +102,31 @@ def post(alerts):
 
 def main():
     dry = "--dry-run" in sys.argv
-    fails = {}  # per source url, so one dead store doesn't hide the others
-    cooldown = {}  # store -> monotonic time until which we don't poll it (after a 429)
-    n = 0
+    shop = Shopify(SHOPIFY_PRODUCTS)
+    last_ok = {}  # store -> monotonic time of last successful read
+    started = time.monotonic()
     while True:
-        alerts = []
-        for store, url, check in sources(n):
-            if time.monotonic() < cooldown.get(store, 0):
-                continue
+        alerts, now = [], time.monotonic()
+        polls = [("eshop.orange.eg", API, lambda: orange_items(get_json(API, **{"Accept-Language": "en-US"})["Data"]), None)]
+        if p := shop.poll(now):
+            polls.append((*p, shop))
+        for store, url, check, sched in polls:
+            err = None
             try:
                 items = check()
-                fails[url] = 0
+                last_ok[store] = now
                 print(f"{datetime.now():%H:%M:%S} {store} {url.rsplit('/', 1)[-1]} available={[i[0] for i in items]}", flush=True)
-                alerts += build_alerts(store, items)
+                alerts += build_alerts(store, items, sched and SHOPIFY_ALERT_TTL)
             except Exception as e:  # never die on a bad poll; the API or network will hiccup
-                if isinstance(e, urllib.error.HTTPError) and e.code == 429:
-                    retry = e.headers.get("Retry-After", "")
-                    cooldown[store] = time.monotonic() + (int(retry) if retry.isdigit() else 300)
-                fails[url] = fails.get(url, 0) + 1
-                print(f"{datetime.now():%H:%M:%S} {store} poll failed ({fails[url]}): {e!r}", flush=True)
-                if fails[url] >= FAIL_ALERT_AFTER:
-                    alerts.append(alert("iPhoneTrackerFailing", "warning", f"iPhone stock tracker cannot read {store}",
-                                        f"{fails[url]} consecutive failed polls. Last error: {e!r}\n{url}",
-                                        {"store": store, "variant": url.rsplit("/", 1)[-1]}))
+                err = e
+                print(f"{datetime.now():%H:%M:%S} {store} poll failed: {e!r}", flush=True)
+            if sched:
+                sched.done(now, err)
+        for store in {"eshop.orange.eg", *(urlparse(u).hostname for u in SHOPIFY_PRODUCTS)}:
+            blind = now - last_ok.get(store, started)
+            if blind > STALE.get(store, SHOPIFY_STALE):
+                alerts.append(alert("iPhoneTrackerFailing", "warning", f"iPhone stock tracker cannot read {store}",
+                                    f"No successful read for {blind / 60:.0f} min (see pod logs)", {"store": store}))
         if alerts:
             try:
                 print(json.dumps(alerts, ensure_ascii=False)) if dry else post(alerts)
@@ -111,7 +134,6 @@ def main():
                 print(f"alertmanager post failed: {e!r}", flush=True)
         if dry:
             return
-        n += 1
         time.sleep(INTERVAL)
 
 
@@ -140,7 +162,20 @@ def _test():
     assert "111,799" in a[0]["annotations"]["description"] and a[0]["labels"]["store"] == "tradelinestores.com"
     s["variants"][0]["available"] = False
     assert shopify_items(s, "u") == []
-    assert len(list(sources(0))) == 1 + bool(SHOPIFY_PRODUCTS)  # orange + at most one shopify product per poll
+
+    sh = Shopify(["https://t.com/products/a", "https://t.com/products/b"])
+    assert sh.poll(0)[1].endswith("/a")
+    sh.done(0)
+    assert sh.poll(SHOPIFY_INTERVAL - 1) is None and sh.poll(SHOPIFY_INTERVAL)[1].endswith("/b")
+    e429 = urllib.error.HTTPError("u", 429, "", {}, None)
+    sh.done(1000, e429)
+    sh.done(1000, e429)
+    assert sh.backoff == 2 * BACKOFF_MIN and sh.poll(1000 + 2 * BACKOFF_MIN)[1].endswith("/b")  # same product retried
+    for _ in range(10):
+        sh.done(1000, e429)
+    assert sh.backoff == BACKOFF_MAX
+    sh.done(1000)
+    assert sh.backoff == 0 and sh.poll(1000 + SHOPIFY_INTERVAL)[1].endswith("/a")
     print("ok")
 
 

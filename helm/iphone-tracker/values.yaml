@@ -6,6 +6,8 @@ image:
 # Last path segment of the product URL on eshop.orange.eg
 seName: iphone-18-pro-max
 intervalSeconds: 30
+# TradeLine rate-limits hard: one product request per this many seconds (round-robin, backs off on 429)
+shopifyIntervalSeconds: 300
 # Shopify product pages to watch (one URL per colour/storage on TradeLine)
 shopifyProducts:
   - https://tradelinestores.com/products/iphone-18-pro-mjxn4af-a  # Pro Max 256GB Black
