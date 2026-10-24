@@ -14,7 +14,7 @@ PAGE = f"https://eshop.orange.eg/ar/smart-phones/p/{SE_NAME}"
 # Shopify product page URLs, comma-separated. Read via the tokenless Storefront GraphQL API, one request per
 # store for all products: the storefront's /products/<handle>.js is behind bot protection and 429s us.
 SHOPIFY_PRODUCTS = [u.strip() for u in os.environ.get("SHOPIFY_PRODUCTS", "").split(",") if u.strip()]
-STOREFRONT_API_VERSION = "2025-07"
+STOREFRONT_API_VERSION = "2026-10"  # Shopify supports ~12 months; older ones silently fall forward
 ALERTMANAGER = os.environ.get("ALERTMANAGER_URL", "http://prometheus-alertmanager.monitoring:9093")
 INTERVAL = int(os.environ.get("INTERVAL_SECONDS", "30"))
 SHOPIFY_INTERVAL = int(os.environ.get("SHOPIFY_INTERVAL_SECONDS", "60"))
@@ -48,23 +48,28 @@ def orange_items(d):
 
 
 def storefront_query(handles):
-    fields = "title variants(first: 20) { nodes { title availableForSale price { amount } } }"
+    fields = "title availableForSale variants(first: 20) { nodes { title availableForSale price { amount } } }"
     return "{ " + " ".join(f'p{i}: product(handle: {json.dumps(h)}) {{ {fields} }}' for i, h in enumerate(handles)) + " }"
 
 
 def shopify_items(resp, urls):
     """Storefront API response for storefront_query(handles of urls) -> [(variant label, summary, price, url)]"""
-    if resp.get("errors"):
-        raise RuntimeError(f"storefront API errors: {resp['errors']}")
+    data = resp.get("data")
+    if resp.get("errors") or not data:
+        raise RuntimeError(f"storefront API errors: {resp.get('errors') or resp}")
     out = []
     for i, url in enumerate(urls):
-        p = resp["data"][f"p{i}"]
+        p = data.get(f"p{i}")
         if p is None:  # handle renamed/removed: fail loudly instead of silently never alerting
             raise LookupError(f"product not found: {url}")
         for v in p["variants"]["nodes"]:
             if v["availableForSale"]:
                 name = p["title"] if v["title"] == "Default Title" else f"{p['title']} {v['title']}"
                 out.append((name, f"{name} is available on {urlparse(url).hostname}", float(v["price"]["amount"]), url))
+        # variants are capped at 20 per query; the product-level flag covers any in-stock one beyond that
+        if p["availableForSale"] and not any(v["availableForSale"] for v in p["variants"]["nodes"]):
+            price = float(p["variants"]["nodes"][0]["price"]["amount"]) if p["variants"]["nodes"] else 0
+            out.append((p["title"], f"{p['title']} is available on {urlparse(url).hostname}", price, url))
     return out
 
 
@@ -144,7 +149,7 @@ def main():
             if s.stale(now):
                 alerts.append(alert("iPhoneTrackerFailing", "warning", f"iPhone stock tracker cannot read {s.store}",
                                     f"No successful read for {(now - s.last_ok) / 60:.0f} min (see pod logs)\n{s.url}",
-                                    {"store": s.store}))
+                                    {"store": s.store}, max(INTERVAL * 4, 120)))
         if alerts:
             try:
                 print(json.dumps(alerts, ensure_ascii=False)) if dry else post(alerts)
@@ -174,15 +179,23 @@ def _test():
 
     urls = ["https://tradelinestores.com/products/x", "https://tradelinestores.com/products/y"]
     assert storefront_query(["x", "y"]).count("product(handle:") == 2
-    r = {"data": {"p0": {"title": "iPhone 18 Pro Max 256GB Black", "variants": {"nodes": [
+    r = {"data": {"p0": {"title": "iPhone 18 Pro Max 256GB Black", "availableForSale": True, "variants": {"nodes": [
         {"title": "Default Title", "availableForSale": True, "price": {"amount": "111799.0"}}]}},
-        "p1": {"title": "Silver", "variants": {"nodes": [
+        "p1": {"title": "Silver", "availableForSale": False, "variants": {"nodes": [
             {"title": "1TB", "availableForSale": False, "price": {"amount": "1.0"}}]}}}}
     a = build_alerts("tradelinestores.com", shopify_items(r, urls))
     assert [x["labels"]["variant"] for x in a] == ["iPhone 18 Pro Max 256GB Black"], a
     assert "111,799" in a[0]["annotations"]["description"] and a[0]["labels"]["store"] == "tradelinestores.com"
     r["data"]["p0"]["variants"]["nodes"][0]["availableForSale"] = False
+    assert [i[0] for i in shopify_items(r, urls)] == ["iPhone 18 Pro Max 256GB Black"]  # in-stock variant past the cap
+    r["data"]["p0"]["availableForSale"] = False
     assert shopify_items(r, urls) == []
+    for bad in ({"errors": [{"message": "x"}], "data": None}, {}):
+        try:
+            shopify_items(bad, urls)
+            raise AssertionError("bad response must raise")
+        except RuntimeError:
+            pass
     r["data"]["p1"] = None
     try:
         shopify_items(r, urls)
