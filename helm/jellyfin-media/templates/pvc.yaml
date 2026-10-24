@@ -35,10 +35,15 @@ kind: PersistentVolumeClaim
 metadata:
   name: jellyfin-config-local
   namespace: {{ .Release.Namespace }}
+  annotations:
+    # local-path reclaim is Delete: a prune would destroy the DB.
+    argocd.argoproj.io/sync-options: Prune=false
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
+      # Advisory only: local-path does not enforce it; usage is bounded by the
+      # node's root disk (~20GB). /config was ~1GB at migration.
       storage: 5Gi
   storageClassName: local-path
