@@ -6,6 +6,8 @@ image:
 # Last path segment of the product URL on eshop.orange.eg
 seName: iphone-18-pro-max
 intervalSeconds: 30
+# TradeLine (Shopify) is read via its Storefront API, one request for all products
+shopifyIntervalSeconds: 60
 # Shopify product pages to watch (one URL per colour/storage on TradeLine)
 shopifyProducts:
   - https://tradelinestores.com/products/iphone-18-pro-mjxn4af-a  # Pro Max 256GB Black
