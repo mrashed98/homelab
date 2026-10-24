@@ -27,3 +27,18 @@ spec:
       storage: 500Gi
   volumeName: jellyfin-media
   storageClassName: manual
+---
+# Jellyfin /config (SQLite DB + metadata). local-path, not NFS: SQLite locking
+# over NFS breaks under concurrent playback. Ties Jellyfin to one node.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config-local
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path
