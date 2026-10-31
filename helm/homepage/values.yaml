@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/gethomepage/homepage
   tag: v2.7.0
-  pullPolicy: Always
+  pullPolicy: IfNotPresent  # version tag is pinned; no need to re-pull on every restart
 
 replicaCount: 1
 
