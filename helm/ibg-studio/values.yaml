@@ -7,7 +7,8 @@ image:
 # LAN dashboard (private DNS like the other *.voltafinancials.com apps) behind basic auth.
 dashboardHost: studio.voltafinancials.com
 # Public hostname served by the Cloudflare Tunnel; only /media/* and the Instagram callback
-# are routed there (path rule in the Cloudflare dashboard). Must differ from dashboardHost.
+# are routed there (path rule in the Cloudflare dashboard). Must differ from dashboardHost;
+# the Deployment template fails the render if they match.
 publicHost: ibg.voltafinancials.com
 
 # Node addresses allowed through the NetworkPolicy for kubelet probes: each node's LAN IP and

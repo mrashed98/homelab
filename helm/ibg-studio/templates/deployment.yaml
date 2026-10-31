@@ -1,3 +1,6 @@
+{{- if eq (lower .Values.dashboardHost) (lower .Values.publicHost) }}
+{{- fail "dashboardHost must differ from publicHost: the public tunnel host may only serve /media/* and the Instagram callback" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,6 +32,11 @@ spec:
         - name: studio
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Playwright starts Chromium with --no-sandbox, so no extra privileges are needed.
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           env:
             - name: DATABASE_URL
               valueFrom:
