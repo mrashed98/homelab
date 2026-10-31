@@ -1,0 +1,28 @@
+# Remotely-managed tunnel: public hostnames and path rules live in the Cloudflare dashboard
+# (Zero Trust -> Networks -> Tunnels -> <tunnel> -> Public Hostname). This chart only runs the
+# connector. Current routes:
+#   ibg.voltafinancials.com
+#     path ^/(media/[a-f0-9]{32}/[0-9]+\.jpg|oauth/instagram/callback)$
+#     -> http://192.168.68.109:8000  (IBG Studio on the Mac; becomes an in-cluster service later)
+#   anything else -> 404 at Cloudflare (tunnel catch-all)
+image:
+  repository: cloudflare/cloudflared
+  # Pinned (never "latest"); Renovate bumps it via the helm-values manager.
+  tag: "2026.10.0"
+  pullPolicy: IfNotPresent
+
+# Two connectors so a node drain or upgrade doesn't drop the tunnel.
+replicaCount: 2
+
+# Secret created by templates/token-sealed.yaml (key: token).
+tokenSecret:
+  name: cloudflared-token
+  key: token
+
+resources:
+  requests:
+    memory: 32Mi
+    cpu: 10m
+  limits:
+    memory: 128Mi
+    cpu: 200m
