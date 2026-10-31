@@ -1,0 +1,29 @@
+image:
+  repository: ghcr.io/mrashed98/ibg-automator
+  # Exact CI build (commit SHA). Bump deliberately; never :latest/:main here.
+  tag: "REPLACE_WITH_SHA"
+  pullPolicy: IfNotPresent
+
+# LAN dashboard (private DNS like the other *.voltafinancials.com apps) behind basic auth.
+dashboardHost: studio.voltafinancials.com
+# Public hostname served by the Cloudflare Tunnel; only /media/* and the Instagram callback
+# are routed there (path rule in the Cloudflare dashboard). Must differ from dashboardHost.
+publicHost: ibg.voltafinancials.com
+
+storage:
+  className: nfs-hdd
+  size: 10Gi
+
+# Sealed secrets in templates/: DB URL, dashboard basic-auth users, GHCR pull credentials.
+secrets:
+  database: ibg-studio-db         # key DATABASE_URL
+  basicAuth: ibg-studio-auth      # key users (htpasswd)
+  pull: ghcr-pull                 # kubernetes.io/dockerconfigjson
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: "1500m"
+    memory: 2Gi                   # Chromium render + ChatGPT CLI + occasional embedding run
