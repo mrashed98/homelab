@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: redis
-    targetRevision: "28.0.12"   # Redis 8.10.1 — pinned; "*" made rollbacks impossible
+    targetRevision: "28.3.10"   # chart only; the image stays on the 8.10.1 digest below
     helm:
       values: |
         fullnameOverride: redis
