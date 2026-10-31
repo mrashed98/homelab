@@ -1,0 +1,41 @@
+image:
+  repository: ghcr.io/mrashed98/ibg-automator
+  # Exact CI build (commit SHA). Bump deliberately; never :latest/:main here.
+  tag: "367eb1c228eff242377a9271ab832a5eaf22e37a"
+  pullPolicy: IfNotPresent
+
+# LAN dashboard (private DNS like the other *.voltafinancials.com apps) behind basic auth.
+dashboardHost: studio.voltafinancials.com
+# Public hostname served by the Cloudflare Tunnel; only /media/* and the Instagram callback
+# are routed there (path rule in the Cloudflare dashboard). Must differ from dashboardHost;
+# the Deployment template fails the render if they match.
+publicHost: ibg.voltafinancials.com
+
+# Node addresses allowed through the NetworkPolicy for kubelet probes: each node's LAN IP and
+# its cni0 bridge (first address of its podCIDR), which is the usual probe source. Single
+# hosts only, never the whole 10.42.0.0/16 pod network.
+nodeIPs:
+  - 192.168.68.150   # k3s-master
+  - 192.168.68.151   # k3s-worker-1
+  - 192.168.68.152   # k3s-worker-2
+  - 10.42.0.1        # k3s-master cni0   (podCIDR 10.42.0.0/24)
+  - 10.42.3.1        # k3s-worker-1 cni0 (podCIDR 10.42.3.0/24)
+  - 10.42.1.1        # k3s-worker-2 cni0 (podCIDR 10.42.1.0/24)
+
+storage:
+  className: nfs-hdd
+  size: 10Gi
+
+# Sealed secrets in templates/: DB URL, dashboard basic-auth users, GHCR pull credentials.
+secrets:
+  database: ibg-studio-db         # key DATABASE_URL
+  basicAuth: ibg-studio-auth      # key users (htpasswd)
+  pull: ghcr-pull                 # kubernetes.io/dockerconfigjson
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: "1500m"
+    memory: 2Gi                   # Chromium render + ChatGPT CLI + occasional embedding run

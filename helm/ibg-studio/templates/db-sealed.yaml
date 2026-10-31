@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ibg-studio-db
+  namespace: ibg-studio
+spec:
+  encryptedData:
+    DATABASE_URL: AgCrMnv8DuUB1jWjux1uNQBl2mTseNGhL50jLU5beEWrcd9fv6Ew5Nu/nxjiuQQ1C6WLimUYVkLHjYm2Ig8sU8CSLcWDab4J+n6AQmjy+4Fp/AS+Ohqqg15D+Gw93GSSFHHcfJUAIfduIeyEs43VVmj7/4b1F4cY3V3hQIP3HUiOfIEGFdt5GCqfSuOgHnClOiq1IemMmIyOmJyM0nGLFyFdFbS/q5viyGaH+MbtYgwX7wWveUVO8vs1+BzOjexwLmx6xBZaNtClTxwoR/FzUyDXrGuxihM91Qk+k60S4jSr1gZM0+/FebIOiIFYxQCtJSdl5ZyIbU/J2jTiskJRdns24FSWSsyJIh/Z+1JNRdWfTIPlwhb9N2tkYU2BdTIwt64YVepqtaSRKkuKDxvuiOplS7mjZWWmZMf9suB2YCYHYr9HWuBViMwNZfSzYmuSWq8Mos98cY/QdRcalYtbviWFV26P8YyiCMgRLJ5Bj/NxIjdk0I/6S7/41JkHoSJ5HqnogvzSI1bfmxhCDHeZiEGWVhS5fgMiBNH9cbLkfdyR46WUTuDKDu0xdyFtdujw8tTzC3v5bWnAchz+dXeMwMtJR/HqGm//q/y7b3xxHrBS/MoWKBIuxdY1DvXm+QW78MomU6IGDTEEHx+adtk97dZwPkWH/Ag/BDyskRe5PTMsFC/22RhksgNXJr61adMc7th7qhsQQfc48W8KkkgAJSloDXjvSoLeLCc/Ee+7eGlg+ffkFLeCIVcNDZiWhETknB51NEB9/YZStUcazlTmg9Tm03rYFYOccG2ZAnjlV9v1+0+UqnPlEMQT4KORyZJwqR7OWfyxNJJkd7nq/t7xVEztc69OatvqcvsfUy/xa+0=
+  template:
+    metadata:
+      name: ibg-studio-db
+      namespace: ibg-studio

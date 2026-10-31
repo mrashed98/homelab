@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ghcr-pull
+  namespace: ibg-studio
+spec:
+  encryptedData:
+    .dockerconfigjson: AgBpIWwbn6KPmrFMYFek1FcQlTgA3l5GcKuPBG7M4DZNaRMqdaMb2zPPm0+iQkb48+3becNTLkcHEPYyxTJH2u21gr2uqFPQzU3H3wfYRL1fp1NJG7XJqC4Thde7/M5Kw0TPuqf52iCI33Xvtn6E++4VwKxQq+szEMb7Vs1hWoozE7YbX4z0RbyB+L8XEx1YvhdXgLirUX0uRCMQHrxdLdz0KjNo1y05kf+nIaLeWOs/x7/Cp/XoVsxdviX6VBmq3LgpAyAPv2CtSUb/eoYjciLkHRuHJ32QwDl6RYAvmdIyMtyfjTD98vAeck31Vw2YUK3p55Xxn1DB3yx5JxwUizJbNHYaQTj2ME7ifsPQ+igIptyZeMGPnsLzR6Vx+GF2fqClX7O4CmvhhrixJzeYqD5tr5Lc8ld8RPyqDMFVdr+G0GHAkT8sSsx0/H/hMsQ0RX4vaHootog9KlW4JBR0eP4sffZMDkcRRSpBPkWYEtZkKGEqqhRCWGqndRWxq7HmEArTUCysh/IY2QbgLWO+cdxNgUQG/gA8pKgDoZfDbSTV2VcpVCls5o55z13Kfc0eID1Mr0aBtZ2lnhroXEydHwEoO+fgZ3hVIop+KQfu2xqFd9eRHP0YIiLS99NjRlgD/NULVmCTGZVSm184A09g6MAARJ70M+g0XFdQQ3l9W00PDAKznmGVA2/kLrfhzWIRIU4GLaWDNLcTp333PiJz6q6+OkpJIS75dEF78iJV9NNVrYYsLzOX2Tov+IeqMSg7LCPeH9NOL8Y8eABfU39JJ8UMRKa1CqV7QREu6iuGWKganJRToJ2rZO/3WztGQJOc6CWSm8yrzg==
+  template:
+    metadata:
+      name: ghcr-pull
+      namespace: ibg-studio
+    type: kubernetes.io/dockerconfigjson
