@@ -16,6 +16,15 @@ spec:
       values: |
         controller:
           type: daemonset
+          # k3s-master is tainted control-plane; Promtail tolerated it, so Alloy must too or
+          # the master's pod logs silently stop reaching Loki.
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/master
+              operator: Exists
+              effect: NoSchedule
         alloy:
           mounts:
             varlog: true   # /var/log/pods from each node
