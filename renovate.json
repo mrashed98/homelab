@@ -35,7 +35,7 @@
       "matchPackageNames": [
         "kube-prometheus-stack",
         "loki",
-        "promtail",
+        "alloy",
         "grafana",
         "**/grafana/**"
       ],

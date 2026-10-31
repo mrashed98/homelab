@@ -1,0 +1,110 @@
+# Grafana Alloy replaces Promtail (deprecated by Grafana). Same job: tail every pod's logs on
+# each node and push them to Loki, keeping Promtail's main labels (namespace, pod, container,
+# app, job, node_name) so existing Grafana queries keep working.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: "1.13.1"   # Alloy v1.20.1
+    helm:
+      values: |
+        controller:
+          type: daemonset
+        alloy:
+          mounts:
+            varlog: true   # /var/log/pods from each node
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 384Mi
+          configMap:
+            content: |
+              discovery.kubernetes "pods" {
+                role = "pod"
+                selectors {
+                  role  = "pod"
+                  field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+                }
+              }
+
+              discovery.relabel "pods" {
+                targets = discovery.kubernetes.pods.targets
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  target_label  = "namespace"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_name"]
+                  target_label  = "pod"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_name"]
+                  target_label  = "container"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_label_app"]
+                  regex         = "^;*([^;]+)(;.*)?$"
+                  target_label  = "app"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace", "app"]
+                  separator     = "/"
+                  target_label  = "job"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_node_name"]
+                  target_label  = "node_name"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+                  separator     = "/"
+                  replacement   = "/var/log/pods/*$1/*.log"
+                  target_label  = "__path__"
+                }
+              }
+
+              local.file_match "pods" {
+                path_targets = discovery.relabel.pods.output
+              }
+
+              loki.source.file "pods" {
+                targets    = local.file_match.pods.targets
+                forward_to = [loki.process.pods.receiver]
+              }
+
+              loki.process "pods" {
+                stage.cri {}
+                forward_to = [loki.write.default.receiver]
+              }
+
+              loki.write "default" {
+                endpoint {
+                  url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+                }
+              }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
