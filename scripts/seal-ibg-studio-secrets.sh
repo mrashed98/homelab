@@ -18,8 +18,12 @@ unset pass
 
 echo "GitHub token with read:packages (classic PAT): https://github.com/settings/tokens/new?scopes=read:packages"
 read -rsp "GHCR token (hidden): " pat; echo
-kubectl create secret docker-registry ghcr-pull -n ibg-studio --docker-server=ghcr.io \
-    --docker-username=mrashed98 --docker-password="$pat" --dry-run=client -o yaml \
+# Built with shell builtins and pipes only: the token never appears in a process listing.
+auth=$(printf '%s:%s' mrashed98 "$pat" | base64 | tr -d '\n')
+printf '{"auths":{"ghcr.io":{"auth":"%s"}}}' "$auth" \
+  | kubectl create secret generic ghcr-pull -n ibg-studio --type=kubernetes.io/dockerconfigjson \
+      --from-file=.dockerconfigjson=/dev/stdin --dry-run=client -o yaml \
   | seal > helm/ibg-studio/templates/ghcr-pull-sealed.yaml
+unset auth
 unset pat
 echo "Wrote auth-sealed.yaml and ghcr-pull-sealed.yaml (encrypted; safe to commit)."

@@ -1,0 +1,31 @@
+# The app trusts the dashboard Host header once Traefik's basic auth has run, so nothing may
+# reach the pod except Traefik (LAN dashboard), the Cloudflare Tunnel (public /media/* and
+# the Instagram callback) and the nodes themselves (kubelet TCP probes).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cloudflared
+        {{- range .Values.nodeIPs }}
+        - ipBlock:
+            cidr: {{ . }}/32
+        {{- end }}
+      ports:
+        - port: 8000
+          protocol: TCP

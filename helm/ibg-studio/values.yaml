@@ -10,6 +10,17 @@ dashboardHost: studio.voltafinancials.com
 # are routed there (path rule in the Cloudflare dashboard). Must differ from dashboardHost.
 publicHost: ibg.voltafinancials.com
 
+# Node addresses allowed through the NetworkPolicy for kubelet probes: each node's LAN IP and
+# its cni0 bridge (first address of its podCIDR), which is the usual probe source. Single
+# hosts only, never the whole 10.42.0.0/16 pod network.
+nodeIPs:
+  - 192.168.68.150   # k3s-master
+  - 192.168.68.151   # k3s-worker-1
+  - 192.168.68.152   # k3s-worker-2
+  - 10.42.0.1        # k3s-master cni0   (podCIDR 10.42.0.0/24)
+  - 10.42.3.1        # k3s-worker-1 cni0 (podCIDR 10.42.3.0/24)
+  - 10.42.1.1        # k3s-worker-2 cni0 (podCIDR 10.42.1.0/24)
+
 storage:
   className: nfs-hdd
   size: 10Gi
