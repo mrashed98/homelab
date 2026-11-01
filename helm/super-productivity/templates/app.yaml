@@ -10,6 +10,8 @@ spec:
   template:
     metadata:
       labels: {app: sp-app}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/webdav-sealed-secret.yaml") . | sha256sum | trunc 12 }}
     spec:
       containers:
         - name: app
