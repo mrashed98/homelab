@@ -1,0 +1,4 @@
+apiVersion: v2
+name: super-productivity
+description: Super Productivity web app + WebDAV sync backend
+version: 0.1.0

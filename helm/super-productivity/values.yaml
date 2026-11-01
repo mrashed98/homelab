@@ -1,0 +1,9 @@
+host: tasks.voltafinancials.com
+
+app:
+  image: johannesjo/super-productivity:latest
+
+webdav:
+  image: hacdias/webdav:v5
+  storageClass: nfs-hdd
+  size: 1Gi
