@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: sp-app}
+  template:
+    metadata:
+      labels: {app: sp-app}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/webdav-sealed-secret.yaml") . | sha256sum | trunc 12 }}
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.app.image }}
+          imagePullPolicy: IfNotPresent
+          ports: [{name: http, containerPort: 80}]
+          env:
+            # ponytail: only prefills the sync form; password is entered once per device
+            - {name: WEBDAV_BASE_URL, value: "https://{{ .Values.host }}/dav/"}
+            - name: WEBDAV_USERNAME
+              valueFrom: {secretKeyRef: {name: webdav-auth, key: WEBDAV_USERNAME}}
+            - {name: WEBDAV_SYNC_FOLDER_PATH, value: /super-productivity}
+          readinessProbe:
+            httpGet: {path: /, port: http}
+          resources:
+            requests: {memory: 32Mi, cpu: 10m}
+            limits: {memory: 128Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector: {app: sp-app}
+  ports: [{port: 80, targetPort: http}]

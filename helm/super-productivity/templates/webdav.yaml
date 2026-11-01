@@ -1,0 +1,78 @@
+{{- define "sp.webdavConfig" -}}
+address: 0.0.0.0
+port: 6065
+prefix: /dav
+directory: /data
+behindProxy: true
+permissions: none
+users:
+  - username: "{env}WEBDAV_USERNAME"
+    password: "{env}WEBDAV_PASSWORD"
+    permissions: CRUD
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webdav-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    {{- include "sp.webdavConfig" . | nindent 4 }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webdav-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: {{ .Values.webdav.storageClass }}
+  resources:
+    requests: {storage: {{ .Values.webdav.size }}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webdav
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: sp-webdav}
+  template:
+    metadata:
+      labels: {app: sp-webdav}
+      annotations:
+        # roll the pod when config or credentials change (envFrom is read at start only)
+        checksum/config: {{ include "sp.webdavConfig" . | sha256sum | trunc 12 }}
+        checksum/secret: {{ include (print $.Template.BasePath "/webdav-sealed-secret.yaml") . | sha256sum | trunc 12 }}
+    spec:
+      containers:
+        - name: webdav
+          image: {{ .Values.webdav.image }}
+          args: ["--config", "/config/config.yml"]
+          ports: [{name: http, containerPort: 6065}]
+          envFrom: [{secretRef: {name: webdav-auth}}]
+          readinessProbe:
+            tcpSocket: {port: http}
+          volumeMounts:
+            - {name: config, mountPath: /config}
+            - {name: data, mountPath: /data}
+          resources:
+            requests: {memory: 16Mi, cpu: 10m}
+            limits: {memory: 128Mi}
+      volumes:
+        - name: config
+          configMap: {name: webdav-config}
+        - name: data
+          persistentVolumeClaim: {claimName: webdav-data}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webdav
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector: {app: sp-webdav}
+  ports: [{port: 6065, targetPort: http}]

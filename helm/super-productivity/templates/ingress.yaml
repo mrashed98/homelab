@@ -1,0 +1,25 @@
+# Same host for app + /dav: same-origin, so no CORS config needed.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: super-productivity
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [{{ .Values.host }}]
+      secretName: super-productivity-tls
+  rules:
+    - host: {{ .Values.host }}
+      http:
+        paths:
+          - path: /dav
+            pathType: Prefix
+            backend: {service: {name: webdav, port: {number: 6065}}}
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: app, port: {number: 80}}}
