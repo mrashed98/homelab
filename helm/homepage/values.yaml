@@ -37,6 +37,11 @@ config:
             href: https://read.voltafinancials.com
             icon: wallabag.png
             description: Read-it-later
+    - Productivity:
+        - Super Productivity:
+            href: https://tasks.voltafinancials.com
+            icon: super-productivity.png
+            description: Tasks & time tracking
     - Security:
         - Vaultwarden:
             href: https://vault.voltafinancials.com
