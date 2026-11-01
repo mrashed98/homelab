@@ -14,12 +14,13 @@ spec:
       containers:
         - name: app
           image: {{ .Values.app.image }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{name: http, containerPort: 80}]
           env:
             # ponytail: only prefills the sync form; password is entered once per device
             - {name: WEBDAV_BASE_URL, value: "https://{{ .Values.host }}/dav/"}
-            - {name: WEBDAV_USERNAME, value: sp}
+            - name: WEBDAV_USERNAME
+              valueFrom: {secretKeyRef: {name: webdav-auth, key: WEBDAV_USERNAME}}
             - {name: WEBDAV_SYNC_FOLDER_PATH, value: /super-productivity}
           readinessProbe:
             httpGet: {path: /, port: http}
