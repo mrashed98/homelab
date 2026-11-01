@@ -13,6 +13,7 @@ spec:
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/webdav-sealed-secret.yaml") . | sha256sum | trunc 12 }}
     spec:
+      enableServiceLinks: false  # Service "app" injects APP_PORT=tcp://..., clobbering nginx listen ${APP_PORT}
       containers:
         - name: app
           image: {{ .Values.app.image }}
