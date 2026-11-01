@@ -48,6 +48,7 @@ spec:
         checksum/config: {{ include "sp.webdavConfig" . | sha256sum | trunc 12 }}
         checksum/secret: {{ include (print $.Template.BasePath "/webdav-sealed-secret.yaml") . | sha256sum | trunc 12 }}
     spec:
+      enableServiceLinks: false
       containers:
         - name: webdav
           image: {{ .Values.webdav.image }}
