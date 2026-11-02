@@ -20,6 +20,9 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        # Pods read env only at start: roll when DATABASE_URL is resealed.
+        checksum/db: {{ include (print $.Template.BasePath "/db-sealed.yaml") . | sha256sum }}
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.pull }}

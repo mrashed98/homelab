@@ -1,0 +1,131 @@
+# IBG's own Postgres. The shared Bitnami server's pgvector is built with AVX2, which these
+# i5-3470 nodes lack: building the HNSW index (and likely any <=> query) dies with SIGILL and
+# restarts the server under every other app. The official pgvector image is built with
+# OPTFLAGS="" (portable), and a crash here only takes IBG down.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ibg-postgres-init
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+data:
+  vector.sql: CREATE EXTENSION IF NOT EXISTS vector;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ibg-postgres
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  clusterIP: None   # headless: the StatefulSet's governing Service
+  selector:
+    app: ibg-postgres
+  ports:
+    - name: postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ibg-postgres
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    # Healthy before the app starts, so the app's startup schema check finds a database.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  serviceName: ibg-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ibg-postgres
+  template:
+    metadata:
+      labels:
+        app: ibg-postgres
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/postgres-sealed.yaml") . | sha256sum }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999   # postgres user in the official image
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: POSTGRES_USER
+              value: ibg_automator
+            - name: POSTGRES_DB
+              value: ibg_automator
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ibg-postgres
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata   # subdir: the volume root has lost+found
+          ports:
+            - name: postgres
+              containerPort: 5432
+          # TCP, not the socket: initdb's temporary server listens on the socket only.
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "ibg_automator", "-d", "ibg_automator"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "ibg_automator", "-d", "ibg_automator"]
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+      volumes:
+        - name: init
+          configMap:
+            name: ibg-postgres-init
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        # Local disk: Postgres on NFS risks corruption on network hiccups.
+        storageClassName: {{ .Values.postgres.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.postgres.size }}
+---
+# Only the IBG app may reach its database.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ibg-postgres-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: ibg-postgres
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Release.Name }}
+      ports:
+        - port: 5432
+          protocol: TCP
