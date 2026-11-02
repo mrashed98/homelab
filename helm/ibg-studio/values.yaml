@@ -44,6 +44,7 @@ secrets:
   database: ibg-studio-db         # key DATABASE_URL
   basicAuth: ibg-studio-auth      # key users (htpasswd)
   pull: ghcr-pull                 # kubernetes.io/dockerconfigjson
+  zernio: ibg-studio-zernio       # key ZERNIO_API_KEY (optional; scripts/seal-ibg-zernio.sh)
 
 resources:
   requests:

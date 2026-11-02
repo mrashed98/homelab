@@ -49,7 +49,7 @@ spec:
             - name: ZERNIO_API_KEY   # optional: without it the Zernio publish route stays hidden
               valueFrom:
                 secretKeyRef:
-                  name: ibg-studio-zernio
+                  name: {{ .Values.secrets.zernio }}
                   key: ZERNIO_API_KEY
                   optional: true
             - name: IBG_DASHBOARD_HOST
