@@ -23,6 +23,7 @@ spec:
       annotations:
         # Pods read env only at start: roll when DATABASE_URL is resealed.
         checksum/db: {{ include (print $.Template.BasePath "/db-sealed.yaml") . | sha256sum }}
+        checksum/zernio: {{ include (print $.Template.BasePath "/zernio-sealed.yaml") . | sha256sum }}
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.pull }}
@@ -46,6 +47,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.database }}
                   key: DATABASE_URL
+            - name: ZERNIO_API_KEY   # optional: without it the Zernio publish route stays hidden
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.zernio }}
+                  key: ZERNIO_API_KEY
+                  optional: true
             - name: IBG_DASHBOARD_HOST
               value: {{ .Values.dashboardHost | quote }}
           ports:

@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ibg-studio-zernio
+  namespace: ibg-studio
+spec:
+  encryptedData:
+    ZERNIO_API_KEY: AgB52qw7HUMYDQgc/kKgR5cZ/LEEgKQY44TOUtq1/mAZQ7jSYWjWEkI93bqDbfTRmFdEFnd59VF9TtzFrweZdycoh6SrsjzQPrSG7+Y5KkLo5zxhWsR59cXeBpqgkfpnjKf7piiSRqsRXKhVBrk8DxDgnDM7FVMtK7M8qAzE7NsipZoO6r3u2GZNnCgXOEZyj8wiiGdv1CS3iIvOesNcayel2uJKC9tJ8FZQd+HzzvT63fSBcIFYUg8qG6Qh80NLe9+GBSNQqfTew32X665FqCHERh9icyt7+HTSeJxtkfirVcNgcF6kbdocKBJu+e0hnYKdkK3cj6edGq94H30HnjmOywf6yYYj7jNXTP7iB++BSPeOZJJlctMdy/au/mGnwpS8WgLbXyVAxHjJvYntay+VRmvcOcoQ/3r7EDoh0bXLMSS/kBNf0GrrBZIvsE4P0gl5LXCNY+TCCyeWhfodOG8LsIbsMJcZ5mQ1IankMUgARci5O/OL0eUJvdulaotIbp370gzraPWa3RWb/NJydsfYrLn7c11+yKdNhcCzYAI+QLZ5BAJuZt7ILRy7rKluTJqJ5Scy8KQgH/3DulPODBXDMwXGYbnMidvbQIxT52ZobrR9TTuUnOpsVc1UVNJtsopJgywMw6QBn0RBgPVi9FSujLnsOwat08aN/1kUpKeFdx1xXDJb7vyuMp9XUjLdTLHf95Q8NcSGSADP35D3jgeip0W2UmOTX4ceKM/cMsjYHQEUAKMmWnEMW5Z2p9z6eWPN3ghaE4wE/CZOzZvdJK2wi0a6
+  template:
+    metadata:
+      name: ibg-studio-zernio
+      namespace: ibg-studio
