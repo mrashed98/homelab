@@ -46,6 +46,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.database }}
                   key: DATABASE_URL
+            - name: ZERNIO_API_KEY   # optional: without it the Zernio publish route stays hidden
+              valueFrom:
+                secretKeyRef:
+                  name: ibg-studio-zernio
+                  key: ZERNIO_API_KEY
+                  optional: true
             - name: IBG_DASHBOARD_HOST
               value: {{ .Values.dashboardHost | quote }}
           ports:
