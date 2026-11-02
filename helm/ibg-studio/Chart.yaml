@@ -3,4 +3,4 @@ name: ibg-studio
 description: IBG Studio - Instagram carousel desk with autopilot (github.com/mrashed98/ibg-automator)
 type: application
 version: 0.1.0
-appVersion: "011bc82"  # keep in sync with values.yaml image.tag
+appVersion: "9b37dee"  # keep in sync with values.yaml image.tag
