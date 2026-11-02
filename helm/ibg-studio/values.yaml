@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/mrashed98/ibg-automator
   # Exact CI build (commit SHA). Bump deliberately; never :latest/:main here.
-  tag: "a60a8f581662416dfe25fb3c8fe60805879d4eed"
+  tag: "dd11e776044865a20ac6007c64e2c891b932b495"
   pullPolicy: IfNotPresent
 
 # LAN dashboard (private DNS like the other *.voltafinancials.com apps) behind basic auth.
@@ -51,4 +51,4 @@ resources:
     memory: 512Mi
   limits:
     cpu: "1500m"
-    memory: 2Gi                   # Chromium render + ChatGPT CLI + occasional embedding run
+    memory: 3Gi                   # Chromium/HyperFrames reel render + Kokoro voice + ChatGPT CLI + embeddings
