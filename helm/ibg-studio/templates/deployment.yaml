@@ -20,6 +20,9 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        # Bump when a sealed secret changes: pods only read env at start.
+        ibg-studio/secrets-revision: "2"
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.pull }}

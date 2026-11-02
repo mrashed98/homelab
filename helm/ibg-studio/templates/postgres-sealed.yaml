@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ibg-postgres
+  namespace: ibg-studio
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  encryptedData:
+    POSTGRES_PASSWORD: AgAkeF29tvO++THiI7m+R8PSq7mlWXukogMzZK+KPvpWknyPFayGVRxClEaHvRy11ZAlBz5oeJDHTezWDRe5tV/a4DmZJnX66Z/I/nPtSAdK4AymCZoYLIEShnHmNJSAb6xa/3oHesNZADkgyWBxwE3Gq6aPKDYOeHLUOG1h6oiBGniFz8Q9TA1yrJC+XMncVZU1j+PTVK2HaTHguMkNWMmwzypfov2aCiPYGLsyFTzp2/hZRL2fLo25//DRHJu14ruHHIW1LnWKEhXrE7DKGqAXq6s4itBxF7llyV8ijx8j1w8hIylVg8PY0tkgsO1XevXWLZCROk4MilCe2k7SNennsdULuh55gwLQlZ7jVg42U6jYWcqNoX5gv31kQK4CKzQWWRTRGYcrfZRHeIwwms/eESmYGXg5i8a6tK6JkufSDRCe8vPaV7EYPDwHHPjzzRZUaxEKfHLsNU69VNxP0ml+d3nXl9DYDeS7sZyKglJpzHXd8jxjX6vKY6c98q6dDx9Xw7PQswKaB0VrpXrUzeKOT0nVULc+vYn43gQq8kkqCU/EtWxspFrXq4bGf0+DMtrw7DIpYIgvT0ZkM8TAIRZeeocTBuRvD9Vq+PUAL4FhUF8s7LuugpUqCDTtgRwt8q2ns17VTAzb3+05nJhSAGKb/Xy5964yURp/WH7Q67oU+fzH2oZzRn1XYG9mQFQ7LmJWcBUEfJwZCs22BAn/bfJpkBiNvTcHMvxrlqDyKkJId/ZM2CPkMQFb0s2RYrraK6U=
+  template:
+    metadata:
+      name: ibg-postgres
+      namespace: ibg-studio
