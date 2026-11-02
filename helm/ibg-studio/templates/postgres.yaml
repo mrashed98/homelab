@@ -20,6 +20,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
+  clusterIP: None   # headless: the StatefulSet's governing Service
   selector:
     app: ibg-postgres
   ports:
@@ -44,7 +45,10 @@ spec:
     metadata:
       labels:
         app: ibg-postgres
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/postgres-sealed.yaml") . | sha256sum }}
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 999   # postgres user in the official image
@@ -72,14 +76,16 @@ spec:
           ports:
             - name: postgres
               containerPort: 5432
+          # TCP, not the socket: initdb's temporary server listens on the socket only.
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "ibg_automator", "-d", "ibg_automator"]
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "ibg_automator", "-d", "ibg_automator"]
+            initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             exec:
-              command: ["pg_isready", "-U", "ibg_automator", "-d", "ibg_automator"]
-            initialDelaySeconds: 30
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "ibg_automator", "-d", "ibg_automator"]
+            initialDelaySeconds: 60
             periodSeconds: 20
           volumeMounts:
             - name: pgdata

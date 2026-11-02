@@ -21,8 +21,8 @@ spec:
       labels:
         app: {{ .Release.Name }}
       annotations:
-        # Bump when a sealed secret changes: pods only read env at start.
-        ibg-studio/secrets-revision: "2"
+        # Pods read env only at start: roll when DATABASE_URL is resealed.
+        checksum/db: {{ include (print $.Template.BasePath "/db-sealed.yaml") . | sha256sum }}
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.pull }}
