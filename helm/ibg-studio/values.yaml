@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/mrashed98/ibg-automator
   # Exact CI build (commit SHA). Bump deliberately; never :latest/:main here.
-  tag: "4e653b3944cf0754d71085f673fb91b0550cfb51"
+  tag: "8336ab956f79f674236e7d4f008d9d743cfad394"
   pullPolicy: IfNotPresent
 
 # LAN dashboard (private DNS like the other *.voltafinancials.com apps) behind basic auth.
@@ -45,6 +45,7 @@ secrets:
   basicAuth: ibg-studio-auth      # key users (htpasswd)
   pull: ghcr-pull                 # kubernetes.io/dockerconfigjson
   zernio: ibg-studio-zernio       # key ZERNIO_API_KEY (optional; scripts/seal-ibg-zernio.sh)
+  jev: ibg-studio-jev             # key TYPESAFE_API_KEY (optional; scripts/seal-ibg-jev.sh)
 
 resources:
   requests:

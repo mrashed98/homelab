@@ -24,6 +24,7 @@ spec:
         # Pods read env only at start: roll when DATABASE_URL is resealed.
         checksum/db: {{ include (print $.Template.BasePath "/db-sealed.yaml") . | sha256sum }}
         checksum/zernio: {{ include (print $.Template.BasePath "/zernio-sealed.yaml") . | sha256sum }}
+        checksum/jev: {{ include (print $.Template.BasePath "/jev-sealed.yaml") . | sha256sum }}
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.pull }}
@@ -52,6 +53,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.zernio }}
                   key: ZERNIO_API_KEY
+                  optional: true
+            - name: TYPESAFE_API_KEY   # optional: without it no pick lists are built
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.jev }}
+                  key: TYPESAFE_API_KEY
                   optional: true
             - name: IBG_DASHBOARD_HOST
               value: {{ .Values.dashboardHost | quote }}
