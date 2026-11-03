@@ -40,7 +40,8 @@ spec:
 ---
 # Chrome fetches the PWA manifest and its icons without credentials, so behind basic auth the
 # app can only be added as a shortcut. These files are static and hold nothing private; exact
-# paths only (Traefik ranks these longer rules above the authenticated "/" prefix).
+# paths only, with an explicit priority: Traefik ranks by rule length and Path(`/sw.js`) is
+# shorter than PathPrefix(`/`).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -49,6 +50,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}
   annotations:
+    traefik.ingress.kubernetes.io/router.priority: "1000"
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
