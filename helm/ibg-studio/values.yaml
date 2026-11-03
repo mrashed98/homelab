@@ -47,10 +47,13 @@ secrets:
   zernio: ibg-studio-zernio       # key ZERNIO_API_KEY (optional; scripts/seal-ibg-zernio.sh)
   jev: ibg-studio-jev             # key TYPESAFE_API_KEY (optional; scripts/seal-ibg-jev.sh)
 
+# Honest memory: nodes have 4 GB and other apps use ~2.4 GB of it. A 512Mi request let the pod
+# land where a reel render (Chromium + Kokoro, ~1.4 GB peak) froze the whole node; a limit close
+# to the request means an oversized render restarts this pod instead of hanging the node.
 resources:
   requests:
     cpu: 100m
-    memory: 512Mi
+    memory: 1536Mi
   limits:
     cpu: "1500m"
-    memory: 3Gi                   # Chromium/HyperFrames reel render + Kokoro voice + ChatGPT CLI + embeddings
+    memory: 1792Mi
