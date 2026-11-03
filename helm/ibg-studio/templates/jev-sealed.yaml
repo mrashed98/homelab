@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ibg-studio-jev
+  namespace: ibg-studio
+spec:
+  encryptedData:
+    TYPESAFE_API_KEY: AgBCSVfoOw+bdEIpZfx1qenPwH0BXo8A9qG1AkKsain92uvS8KaPUbOBgOxnem6P4q04xT7OJuI6Hr4LVyXHwBOt36hHw+aOxmqmgMsjqbbzWISr7oVH2Adz7bjHAwTfrol6vRaPzpAdf5LNn46CTnbidvrxLIH61V/fW+zJdUTfslCq09/Br/W0aLNzcbT4zgroit93cETwS/iRHnIxAMoVGgBM/JsEc2rvWMrxRPWh55t4EVJaS2TxTrot2Sd2XDaDcJy/1ehW9B0+Ck85MLISXXNxUX0rhpOnPeejw1cbKwssywB6tymQUbuiQq57LWA0XIxfIj9PZRQ8TUAzThQMTlTOcKqPJkSDxNq3ptjKqKc4iT/sMNL2up6G6m2xpLNhg42sH9kgET04OP7bQFd73vueM6mH1WMkd8z/4kRulqzp87+0qizXO8jd93bAfcM0+ZQao3eTr73SYndtV8Ca4u2T1ESEVHQKv9RUZWyBndSkOWmvdrIyr50SiocFCVKlRpc6ERUos4qFImaV66bLIBoAoA/fgtIAyHd8lHdllHLbgENhCwLOdX2NFEiE1NovGHMF55VxiQUNQH0WvQj21geEePS8g0nSxVJixUL+bW3tXrMW2CdzR9XgDFbEqYycbR4rVMCaIps0QAODypn6gnUkohYIMloRAF1nneN02i8+9OX4O1qLOY4toT/Bk7L6gGZoXhXrt/egDdUZ4isN0lgoSn7x7XbYD62VNkCUSrdbwTorQJbCqDCp2/smESxDdjQCAow0gpXkQNemHjnozSA8fiwrvl9imjpfL82xIqlgcJkZjBhNABnKjQAVyqMWTjci/0b+js2AwQ0=
+  template:
+    metadata:
+      name: ibg-studio-jev
+      namespace: ibg-studio
