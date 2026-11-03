@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/mrashed98/ibg-automator
   # Exact CI build (commit SHA). Bump deliberately; never :latest/:main here.
-  tag: "41aa3a5cbab1a7f8539b369dec4b44831a0e92de"
+  tag: "44a6de190c96f47a84b7dbef6f8f9d571f8bf15c"
   pullPolicy: IfNotPresent
 
 # LAN dashboard (private DNS like the other *.voltafinancials.com apps) behind basic auth.
