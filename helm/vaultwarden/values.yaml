@@ -1,6 +1,6 @@
 image:
   repository: vaultwarden/server
-  tag: 1.37.2-alpine
+  tag: 1.37.4-alpine
   pullPolicy: IfNotPresent
 
 replicaCount: 1
