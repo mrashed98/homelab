@@ -50,7 +50,10 @@
 
   tasks:
     - name: Join Workers to the cluster
-      ansible.builtin.shell: curl -sfL https://get.k3s.io | sh -
+      ansible.builtin.shell:
+        cmd: curl -sfL https://get.k3s.io | sh -
+        # without this every re-run silently upgrades k3s on the workers
+        creates: /usr/local/bin/k3s
       environment:
         K3S_URL: "https://192.168.68.150:6443"
         K3S_TOKEN: "{{ hostvars['192.168.68.150']['master_token_output']['stdout'] }}"
@@ -72,4 +75,43 @@
         path: /mnt/k3s-data
         src: /dev/vdb
         fstype: ext4
+        state: mounted
+
+    # local-path writes to /var/lib/rancher/k3s/storage on the 20GB root disk.
+    # Bind-mounting the data disk over it keeps every existing PV path valid.
+    - name: Check whether local-path storage is already on the data disk
+      ansible.builtin.command: findmnt -n /var/lib/rancher/k3s/storage
+      register: storage_mount
+      failed_when: false
+      changed_when: false
+
+    - name: Look for volumes the bind mount would hide
+      ansible.builtin.find:
+        paths: /var/lib/rancher/k3s/storage
+        file_type: any
+      register: old_volumes
+      when: storage_mount.rc != 0
+
+    - name: Refuse to mount over existing volumes
+      ansible.builtin.fail:
+        msg: >-
+          /var/lib/rancher/k3s/storage has {{ old_volumes.matched }} volume(s) on the root disk.
+          Scale their pods to 0, cp -a them to /mnt/k3s-data/storage, then re-run.
+      when: storage_mount.rc != 0 and old_volumes.matched > 0
+
+    - name: Create local-path directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /mnt/k3s-data/storage
+        - /var/lib/rancher/k3s/storage
+
+    - name: Bind-mount data disk as local-path storage
+      ansible.posix.mount:
+        path: /var/lib/rancher/k3s/storage
+        src: /mnt/k3s-data/storage
+        fstype: none
+        opts: bind
         state: mounted
