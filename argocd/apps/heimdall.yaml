@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: heimdall
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Heimdall: dependency + CVE watcher (https://github.com/mrashed98/heimdall).
+    # Pinned to a release tag; bump deliberately.
+    repoURL: https://github.com/mrashed98/heimdall.git
+    targetRevision: v0.2.1
+    path: deploy/helm/heimdall
+    helm:
+      values: |
+        # Secret is a SealedSecret: argocd/infrastructure/secrets/heimdall-sealed-secret.yaml
+        existingSecret: heimdall-secrets
+
+        config:
+          realms: [homelab]
+          sight:
+            realm: homelab
+          # Own images are CVE-scanned but never release-watched.
+          own_registries: ["ghcr.io/mrashed98"]
+          admins: ["mrashed98"]
+          # No Teams route until the webhook exists: findings stay pending (nothing is
+          # queued or marked announced) and go out as fresh grouped cards once a route
+          # is added. To enable, add TEAMS_WEBHOOK_DEFAULT to the sealed secret and:
+          #   teams:
+          #     - { name: default, webhook_env: TEAMS_WEBHOOK_DEFAULT, realms: [], min_severity: high }
+          teams: []
+          digest:
+            weekday: Mon
+            hour: 9
+            timezone: Africa/Cairo
+          watchers:
+            github:
+              - { repo: kubernetes/kubernetes, inventory_name: kubernetes, major_component: 1 }
+              - { repo: k3s-io/k3s, inventory_name: k3s, major_component: 1 }
+              - { repo: argoproj/argo-cd, inventory_name: argocd }
+              - { repo: cert-manager/cert-manager, inventory_name: cert-manager }
+              - { repo: bitnami-labs/sealed-secrets, inventory_name: sealed-secrets }
+              - { repo: prometheus-community/helm-charts, inventory_name: kube-prometheus-stack }
+              - { repo: grafana/grafana, inventory_name: grafana }
+              - { repo: grafana/loki, inventory_name: loki }
+              - { repo: opentofu/opentofu, inventory_name: opentofu }
+              - { repo: hashicorp/terraform, inventory_name: terraform }
+            endoflife:
+              - { product: kubernetes, inventory_name: kubernetes, major_component: 1, repo: kubernetes/kubernetes }
+              - { product: k3s, inventory_name: k3s, major_component: 1, repo: k3s-io/k3s }
+              - { product: postgresql, inventory_name: postgresql, cpe: "cpe:2.3:a:postgresql:postgresql", repo: postgres/postgres }
+              - { product: ubuntu, inventory_name: ubuntu }
+          # In-cluster Bitnami PostgreSQL (databases/postgres-0), image pinned by digest.
+          declared:
+            - { realm: homelab, service: postgres, purl: "pkg:generic/postgresql@18.6.0" }
+
+        serviceMonitor:
+          enabled: true
+          # ArgoCD renders offline, so force it; the Prometheus Operator CRDs are installed.
+          force: true
+          labels:
+            release: monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: heimdall
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
