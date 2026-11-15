@@ -23,13 +23,13 @@ spec:
           # Own images are CVE-scanned but never release-watched.
           own_registries: ["ghcr.io/mrashed98"]
           admins: ["mrashed98"]
-          # Web UI sign-in (v0.3.0+). Local break-glass user only for now; reach the UI
-          # with `kubectl -n heimdall port-forward svc/heimdall 8080:8080`. The user is
-          # created in the pod: `heimdall user create mrashed98 --role admin`.
-          # Before adding an ingress, set public_url to its https URL and
-          # trusted_proxies to the pod CIDR (10.42.0.0/16) so throttling sees real IPs.
+          # Web UI sign-in (v0.3.0+): https://heimdall.voltafinancials.com (LAN wildcard DNS).
+          # Local break-glass user only; created in the pod with
+          # `heimdall user create mrashed98 --role admin`.
+          # trusted_proxies = pod CIDR, so login throttling sees client IPs, not traefik's.
           auth:
-            public_url: http://localhost:8080
+            public_url: https://heimdall.voltafinancials.com
+            trusted_proxies: ["10.42.0.0/16"]
             local:
               enabled: true
           # No Teams route until the webhook exists: findings stay pending (nothing is
@@ -62,6 +62,18 @@ spec:
           # In-cluster Bitnami PostgreSQL (databases/postgres-0), image pinned by digest.
           declared:
             - { realm: homelab, service: postgres, purl: "pkg:generic/postgresql@18.6.0" }
+
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+            traefik.ingress.kubernetes.io/router.tls: "true"
+          hosts: [heimdall.voltafinancials.com]
+          tls:
+            - hosts: [heimdall.voltafinancials.com]
+              secretName: heimdall-tls
 
         serviceMonitor:
           enabled: true
