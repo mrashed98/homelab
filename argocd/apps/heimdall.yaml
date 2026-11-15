@@ -9,7 +9,7 @@ spec:
     # Heimdall: dependency + CVE watcher (https://github.com/mrashed98/heimdall).
     # Pinned to a release tag; bump deliberately.
     repoURL: https://github.com/mrashed98/heimdall.git
-    targetRevision: v0.2.1
+    targetRevision: v0.3.0
     path: deploy/helm/heimdall
     helm:
       values: |
@@ -23,6 +23,15 @@ spec:
           # Own images are CVE-scanned but never release-watched.
           own_registries: ["ghcr.io/mrashed98"]
           admins: ["mrashed98"]
+          # Web UI sign-in (v0.3.0+). Local break-glass user only for now; reach the UI
+          # with `kubectl -n heimdall port-forward svc/heimdall 8080:8080`. The user is
+          # created in the pod: `heimdall user create mrashed98 --role admin`.
+          # Before adding an ingress, set public_url to its https URL and
+          # trusted_proxies to the pod CIDR (10.42.0.0/16) so throttling sees real IPs.
+          auth:
+            public_url: http://localhost:8080
+            local:
+              enabled: true
           # No Teams route until the webhook exists: findings stay pending (nothing is
           # queued or marked announced) and go out as fresh grouped cards once a route
           # is added. To enable, add TEAMS_WEBHOOK_DEFAULT to the sealed secret and:
