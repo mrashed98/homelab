@@ -10,7 +10,7 @@ metadata:
     app: {{ .Release.Name }}
 spec:
   # One process owns the scheduler, the Codex login and a Postgres advisory lock.
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   strategy:
     type: Recreate
   selector:
