@@ -1,6 +1,9 @@
 {{- if eq (lower .Values.dashboardHost) (lower .Values.publicHost) }}
 {{- fail "dashboardHost must differ from publicHost: the public tunnel host may only serve /media/* and the Instagram callback" }}
 {{- end }}
+{{- if gt (int .Values.replicas) 1 }}
+{{- fail "replicas must be 0 or 1: one process owns the scheduler, the Codex login and the advisory lock" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -10,7 +13,7 @@ metadata:
     app: {{ .Release.Name }}
 spec:
   # One process owns the scheduler, the Codex login and a Postgres advisory lock.
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   strategy:
     type: Recreate
   selector:
