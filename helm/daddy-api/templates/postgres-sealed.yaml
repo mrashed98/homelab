@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: daddy-postgres
+  namespace: daddy
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  encryptedData:
+    POSTGRES_PASSWORD: AgDnCdPkpp3352O2jpmA3f8CuemSkxzS4sOzORv5Db6T3dt/qSI70iK+k5B/pQP68tqKc5U5QegVsQ12bIab5acPjwHuwfxlrpi/1T4ARzFrCUiZRBIjqEdAPyP9z0FX2dPXfazlIBIY3wQ39oSxaUx29KpiHdGJWmS5qYiL0OVYieAOs8JIZRhK9AhNaBH2gl4NADWKTVOHDQLmE9zypxyNqwAj04UMr2m2doW+hBa08W4lO599W0glAGdjmWq6+kcXPZbN77RxWvNXDwac6o0DixscVGYG0V/nFy/QEbgQYtZshnQPHCr6iqEiBvnY5Gtv2aTpvUju5bhmO37Xu+Ep5jLvUWW4mQIA6RGlBOjBrB0/qXl6RUWdVTEmiyBDXqle4GFtuFox4dEvapYmnJo6ceJP0I1zu5PXSlGGA01okQTet39dFwkCVcn+48HPbNaPudBNZmOf+zLB7PgrfOTJc+AhSljKaLZDu9Mh+odvA52Tz2qA/vjHzAxbVG7k8f2vqJk1Ii97f8FaUEobuD5BD6JMsRvcBg+lQumEGLiC6QXw0MFCrnC/FFsWFVP+G3w2w4ZqGSpNKfSC9fzG/vKgXM/67zvL/L3IIX/rk/z8guCHkI5IfO9Nh/73H4aNES/IgLh47nqs/p82Fk0obz5H9QuSb38VFZeKiDqy3NCmjJImGIx6P5CaTqsms934BxMZjXfSIt9D2vpme7AcME93P5it5FDswaG4UVfWFJqZQu5Cimc1taRE6qMM+UVMJHs=
+  template:
+    metadata:
+      name: daddy-postgres
+      namespace: daddy

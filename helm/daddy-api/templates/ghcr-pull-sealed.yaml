@@ -1,0 +1,16 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ghcr-pull
+  namespace: daddy
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  encryptedData:
+    .dockerconfigjson: AgACFPIDxcTaIbnwhB6e7FdGXq/5AV6MRsvpS3y9FSzcs7oUAaDVJYTVHKcOh+YPHfFkUfrIINAtSh+t4D02j83XBCzjMNeMSnZpeQtEJ9VuDTrjVGS8/U1ZhYBA4PaeLyeMIzWt3YYuTJrHIkFf27WvtgrIbu8YE4t6TbkufyOxjR32ALPKN/3wpOSpp8jEMQlpCvaMVNaRMhiiqwLbXyHOymJpfytThLpYofp5fyF1iT6VhLkGqwy/kbbFc+J8spFw7euAUoOhmLNlngypnD0TVSDPo80GFnzmj4BVT1WpWJfBfkl9uZmuVB809PF/4xQlzYnxFU+EIDoe8DtEr0UlTgCJ+OKgX7+amNj+bK3WuIhhYWTqXX03IJ3yay7aWJjhdaAvYydXFbeTGR5cTGLNbJR/ZaoboCRuXGyv8VfYYS0WqTMB6pfjmPh0GNnfBwRczV5jrC8WgEUnFDny8vOdpuyzsmVPiMuludfQ5i8b7+AcSNRP3PCA1aUZQQNIcWLKv/LygOs3ykFyjxX+rfaeo0XexZa4kmS56Q6f5f8O/zDThsT1W3j2Bxd7FCldvGsssm6Dg07ZwgEsbdFkzrFmJ9yeoZD6uKS+3lsmxy7PY4KPEgwayVNDIM2JpoLJNKGVTicNGxZmH/wNi8bKqedQ/aZTy+SO4nxgB8g69QluExbU2/0WRx/CLwxb+5bhkhfBF1OtTZ1aQ2qDSzKJmSG4lC7Sf8h85nHieqPBVvmg2mRx/TALI4OpMQ1tF/FbCPs8Q22h+5L4eTxZ48gXt4eQdGtUGAu+6u6SuTOCjaxzDVDWEjqHmd4KHuD9KqwZWiyU+RpSLg==
+  template:
+    metadata:
+      name: ghcr-pull
+      namespace: daddy
+    type: kubernetes.io/dockerconfigjson
