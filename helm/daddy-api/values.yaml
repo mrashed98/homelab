@@ -1,0 +1,57 @@
+image:
+  repository: ghcr.io/mrashed98/daddy-api
+  # Exact CI build (commit SHA on Daddy main). Bump deliberately; never :latest/:main here.
+  tag: "2e0c77d791aa7e3ffa829ced0d5f3110d826a4aa"
+  pullPolicy: IfNotPresent
+
+# Public hostname served by the Cloudflare Tunnel (route set in the Cloudflare dashboard):
+#   daddy-api.voltafinancials.com -> http://daddy-api.daddy.svc.cluster.local:8080
+publicHost: daddy-api.voltafinancials.com
+
+# Order to try AI providers; providers without a key in the secret are skipped.
+aiProviders: "openai,anthropic"
+# Placeholder until the real bundle ID exists (sign-in stays refused without the Apple key).
+appleBundleID: com.example.daddy
+
+# Kubelet probe sources allowed through the NetworkPolicy (same list as ibg-studio).
+nodeIPs:
+  - 192.168.68.150   # k3s-master
+  - 192.168.68.151   # k3s-worker-1
+  - 192.168.68.152   # k3s-worker-2
+  - 10.42.0.1        # k3s-master cni0
+  - 10.42.3.1        # k3s-worker-1 cni0
+  - 10.42.1.1        # k3s-worker-2 cni0
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: "1"
+    memory: 256Mi
+
+# Daddy's own Postgres (templates/postgres.yaml). Pinned by digest; bump deliberately.
+postgres:
+  image: postgres:17.12@sha256:87c8b42f423b45d5247e6aa8fdb2e7762fec164c68a50fe3eb07e7bfcaf4dbcf
+  storageClass: local-path   # never NFS for a database
+  size: 2Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      cpu: 500m
+      memory: 384Mi
+
+# Nightly pg_dump to NFS, kept 14 days (templates/backup.yaml).
+backup:
+  schedule: "30 2 * * *"   # 02:30, cluster time
+  keepDays: 14
+  storageClass: nfs-hdd
+  size: 2Gi
+
+# Sealed secrets in templates/, written by scripts/seal-daddy.sh.
+secrets:
+  app: daddy-api          # DATABASE_URL, JWT_SIGNING_KEY, APPLE_TOKEN_KEY, OPENAI_API_KEY[, ANTHROPIC_API_KEY]
+  postgres: daddy-postgres  # POSTGRES_PASSWORD
+  pull: ghcr-pull         # kubernetes.io/dockerconfigjson

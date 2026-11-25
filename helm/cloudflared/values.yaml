@@ -4,6 +4,8 @@
 #   ibg.voltafinancials.com
 #     path ^/(media/[a-f0-9]{32}/[0-9]+\.jpg|oauth/instagram/callback)$
 #     -> http://192.168.68.109:8000  (IBG Studio on the Mac; becomes an in-cluster service later)
+#   daddy-api.voltafinancials.com  (all paths; the API authenticates every route itself)
+#     -> http://daddy-api.daddy.svc.cluster.local:8080
 #   anything else -> 404 at Cloudflare (tunnel catch-all)
 image:
   repository: cloudflare/cloudflared

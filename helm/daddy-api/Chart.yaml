@@ -1,0 +1,6 @@
+apiVersion: v2
+name: daddy-api
+description: Daddy backend - AI coach API for the Daddy iOS app (github.com/mrashed98/Daddy, backend/)
+type: application
+version: 0.1.0
+appVersion: "2e0c77d"

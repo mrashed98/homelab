@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: daddy-postgres
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  clusterIP: None   # headless: the StatefulSet's governing Service
+  selector:
+    app: daddy-postgres
+  ports:
+    - name: postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: daddy-postgres
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    # Ready before the API starts: the API migrates at start-up and exits without a database.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  serviceName: daddy-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: daddy-postgres
+  template:
+    metadata:
+      labels:
+        app: daddy-postgres
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999   # postgres user in the official image
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: POSTGRES_USER
+              value: daddy
+            - name: POSTGRES_DB
+              value: daddy
+            - name: POSTGRES_INITDB_ARGS
+              value: --data-checksums
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.postgres }}
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata   # subdir: the volume root has lost+found
+          ports:
+            - name: postgres
+              containerPort: 5432
+          # TCP, not the socket: initdb's temporary server listens on the socket only.
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "daddy", "-d", "daddy"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "daddy", "-d", "daddy"]
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.postgres.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.postgres.size }}
+---
+# Only the API and the backup job may reach the database.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: daddy-postgres-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: daddy-postgres
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Release.Name }}
+        - podSelector:
+            matchLabels:
+              app: daddy-backup
+      ports:
+        - port: 5432
+          protocol: TCP
